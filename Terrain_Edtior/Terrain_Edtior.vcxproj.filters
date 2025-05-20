@@ -16,9 +16,6 @@
     <Filter Include="Исходные файлы\Libs">
       <UniqueIdentifier>{8a189a07-d087-421e-a9ef-b78bda83d721}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Shaders">
-      <UniqueIdentifier>{cb11f886-36a4-451e-b230-5ee3d77013ba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Файлы ресурсов\Shaders">
       <UniqueIdentifier>{a8e4c939-d0b3-47cf-bde8-064d0e59783b}</UniqueIdentifier>
     </Filter>
@@ -28,57 +25,60 @@
     <Filter Include="Исходные файлы\IO">
       <UniqueIdentifier>{0c9a098a-eed7-4a2c-840e-6a63bec069d1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\Renderer">
+      <UniqueIdentifier>{cb11f886-36a4-451e-b230-5ee3d77013ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="glad.c">
+    <ClCompile Include="IO\Joystick.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Keyboard.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Mouse.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Libs\glad.c">
       <Filter>Исходные файлы\Libs</Filter>
     </ClCompile>
-    <ClCompile Include="stb.cpp">
+    <ClCompile Include="Libs\stb.cpp">
       <Filter>Исходные файлы\Libs</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Исходные файлы\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard.cpp">
-      <Filter>Исходные файлы\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="Mouse.cpp">
-      <Filter>Исходные файлы\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="Joystick.cpp">
-      <Filter>Исходные файлы\IO</Filter>
+    <ClCompile Include="Renderer\Shaders\Shader.cpp">
+      <Filter>Исходные файлы\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragment_shader.glsl">
+    <None Include="Assets\Shaders\fragment_shader.glsl">
       <Filter>Файлы ресурсов\Shaders</Filter>
     </None>
-    <None Include="vertex_shader.glsl">
+    <None Include="Assets\Shaders\vertex_shader.glsl">
       <Filter>Файлы ресурсов\Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shader.h">
-      <Filter>Исходные файлы\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyboard.h">
+    <ClInclude Include="IO\Joystick.h">
       <Filter>Исходные файлы\IO</Filter>
     </ClInclude>
-    <ClInclude Include="Mouse.h">
+    <ClInclude Include="IO\Keyboard.h">
       <Filter>Исходные файлы\IO</Filter>
     </ClInclude>
-    <ClInclude Include="Joystick.h">
+    <ClInclude Include="IO\Mouse.h">
       <Filter>Исходные файлы\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Shaders\Shader.h">
+      <Filter>Исходные файлы\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="wall.jpg">
+    <Image Include="Assets\Textures\smile_face.png">
       <Filter>Файлы ресурсов\Textures</Filter>
     </Image>
-    <Image Include="smile_face.png">
+    <Image Include="Assets\Textures\wall.jpg">
       <Filter>Файлы ресурсов\Textures</Filter>
     </Image>
   </ItemGroup>
