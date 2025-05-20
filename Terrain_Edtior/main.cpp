@@ -1,27 +1,29 @@
-#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <streambuf>
 #include <string>
 
+#include "shader.h"
+
 const int WIDTH = 640, HEIGHT = 480;
 const int OPENGL_VERSION_MAJOR = 3, OPENGL_VERSION_MINOR = 4;
-const int ERROR_SIZE = 512;
-glm::vec4 peachColor = { 1.0f, 0.898f, 0.706f, 1.0f };//glm test
+const glm::vec4 peachColor = { 1.0f, 0.898f, 0.706f, 1.0f };//glm test
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow* window);
-std::string loadShaderSrc(const char* filename);
 
 int main()
 {
-	int success;
-	char infoLog[ERROR_SIZE];
+	//Initializing transformation matrix (rotation, scaling, translation)
+	glm::mat4 trans = glm::mat4(1.0f);
 
 	/*---------------------------------Initialization---------------------------------*/
 	//Initializes OpenGL
@@ -48,6 +50,7 @@ int main()
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
+		glfwTerminate();
 		return -1;
 	}
 
@@ -55,59 +58,10 @@ int main()
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
-
-	/*---------------------------------Setting Up Shaders---------------------------------*/
-	
-	//Vertex Shader Compilation
-	unsigned int vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-	std::string vertexShaderSource = loadShaderSrc("./vertex_shader.glsl");
-	const GLchar* vertexShader = vertexShaderSource.c_str();
-	glShaderSource(vertexShaderId, 1, &vertexShader, NULL);
-	glCompileShader(vertexShaderId);
-
-	//Check for errors while compilating Vertex Shader
-	glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShaderId, ERROR_SIZE, NULL, infoLog);
-		std::cout << "Vertex Shader compilated with error: " << infoLog << '\n';
-		return -1;
-	}
-
-	//Fragment Shader Compilation
-	unsigned int fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-	std::string fragmentShaderSource = loadShaderSrc("./fragment_shader.glsl").c_str();
-	const GLchar* fragmentShader = fragmentShaderSource.c_str();
-	glShaderSource(fragmentShaderId, 1, &fragmentShader, NULL);
-	glCompileShader(fragmentShaderId);
-
-	//Check for errors while compilating Fragment Shader
-	glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShaderId, ERROR_SIZE, NULL, infoLog);
-		std::cout << "Fragment Shader compilated with error: " << infoLog << '\n';
-		return -1;
-	}
-
-	//Create Shader Program
-	unsigned int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShaderId);
-	glAttachShader(shaderProgram, fragmentShaderId);
-	glLinkProgram(shaderProgram);
-
-	//Check for errors while linking shaders in program
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shaderProgram, ERROR_SIZE, NULL, infoLog);
-		std::cout << "Shader linked in program with error: " << infoLog << '\n';
-		return -1;
-	}
-
-	//Deleting compilated shader because we have a program
-	glDeleteShader(vertexShaderId);
-	glDeleteShader(fragmentShaderId);
+	//Setting Up Shaders
+	Shader shader("./vertex_shader.glsl", "./fragment_shader.glsl");
+	shader.activate();
+	shader.setMat4("transform", trans);
 
 
 	/*---------------------------------Preparing Data to Render---------------------------------*/
@@ -115,11 +69,11 @@ int main()
 	//Vertex array
 	float vertices[] =
 	{
-		//first triangle
-		0.5f, 0.5f, 0.0f,//top right
-		-0.5f, 0.5f, 0.0f,//top left
-		-0.5f, -0.5f, 0.0f,//bottom left
-		0.5f, -0.5f, 0.0f//bottom right
+		//Positions             Colors
+		 0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 0.5f,
+		-0.5f,  0.5f, 0.0f,     0.5f, 1.0f, 0.75f,
+		-0.5f, -0.5f, 0.0f,     0.6f, 1.0f, 0.2f,
+		 0.5f, -0.5f, 0.0f,     1.0f, 0.2f, 1.0f
 	};
 	unsigned int indices[] =
 	{
@@ -127,7 +81,7 @@ int main()
 		2, 3, 0//second triangle
 	};
 
-	//VAO, VBO, EBO creation
+	//VAO, VBO, EBO creation, 1 for each
 	unsigned int VAO, VBO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -138,14 +92,18 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	//Add VBO (pure vertices) as the first attribute to VAO
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+	//Add VBO's pure vertices as the 1st attribute to VAO
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
 	glEnableVertexAttribArray(0);
+	//Add VBO's colors as the 2nd attribute to VAO
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	//Add EBO (indices of vertices) to VAO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+	
 	/*---------------------------------Render, Calculate, Process, Repeat---------------------------------*/
 
 	//Run window until closed for a reason
@@ -158,10 +116,13 @@ int main()
 		glClearColor(peachColor.x, peachColor.y, peachColor.z, peachColor.a);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		//Changing rotation angle
+		trans = glm::rotate(trans, glm::radians((float)glfwGetTime() / 100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		shader.setMat4("transform", trans);
+
 		//Draw Shapes from VAO with needed attributes, using needed program and vertex indices
 		glBindVertexArray(VAO);
-		glUseProgram(shaderProgram);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) 0);
 
 		//Set current frame from back buffer and process any events related to a window
 		glfwSwapBuffers(window);
@@ -170,6 +131,9 @@ int main()
 
 
 	/*---------------------------------End Program Correctly---------------------------------*/
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
@@ -186,28 +150,4 @@ void processInput(GLFWwindow* window)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-}
-
-std::string loadShaderSrc(const char * filename)
-{
-	std::ifstream file;
-	std::stringstream buf;
-
-	std::string ret = "";
-	file.open(filename);
-
-	if (file.is_open())
-	{
-		buf << file.rdbuf();
-		ret = buf.str();
-	}
-	else
-	{
-		std::cout << "Couldn't open " << filename << "\n";
-		 
-	}
-
-	file.close();
-	
-	return ret;
 }
