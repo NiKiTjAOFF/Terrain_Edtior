@@ -16,6 +16,12 @@
     <Filter Include="Исходные файлы\Libs">
       <UniqueIdentifier>{8a189a07-d087-421e-a9ef-b78bda83d721}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\Shaders">
+      <UniqueIdentifier>{cb11f886-36a4-451e-b230-5ee3d77013ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Shaders">
+      <UniqueIdentifier>{a8e4c939-d0b3-47cf-bde8-064d0e59783b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,13 +33,21 @@
     <ClCompile Include="stb.cpp">
       <Filter>Исходные файлы\Libs</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Исходные файлы\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertex_shader.glsl">
-      <Filter>Файлы ресурсов</Filter>
-    </None>
     <None Include="fragment_shader.glsl">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Файлы ресурсов\Shaders</Filter>
     </None>
+    <None Include="vertex_shader.glsl">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shader.h">
+      <Filter>Исходные файлы\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
