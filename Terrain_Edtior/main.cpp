@@ -17,27 +17,34 @@
 #include "IO/Keyboard.h"
 #include "IO/Mouse.h"
 #include "IO/Joystick.h"
+#include "IO/Camera.h"
 
-const int WIDTH = 640, HEIGHT = 480;
-const int OPENGL_VERSION_MAJOR = 3, OPENGL_VERSION_MINOR = 4;
-const glm::vec4 peachColor = { 1.0f, 0.898f, 0.706f, 1.0f };//glm test
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window, double dt);
+
+int g_width = 640, g_height = 480;
+const int G_OPENGL_VERSION_MAJOR = 3, G_OPENGL_VERSION_MINOR = 4;
+const glm::vec4 G_PEACH_COLOR = { 1.0f, 0.898f, 0.706f, 1.0f };//glm test
 
 //Shaders
-const char* vertexShaderPath = "./Assets/Shaders/vertex_shader.glsl";
-const char* fragmentShaderPath = "./Assets/Shaders/fragment_shader.glsl";
+const char* G_VERTEX_SHADER_PATH = "./Assets/Shaders/vertex_shader.glsl";
+const char* G_FRAGMENT_SHADER_PATH = "./Assets/Shaders/fragment_shader.glsl";
 
 //Textures
-const char* wallTexturePath = "./Assets/Textures/wall.jpg";
-const char* smileFaceTexturePath = "./Assets/Textures/smile_face.png";
+const char* G_WALL_TEXTURE_PATH = "./Assets/Textures/wall.jpg";
+const char* G_SMILEY_FACE_TEXTURE_PATH = "./Assets/Textures/smile_face.png";
 
-float mixVal = 0.5f;
+float g_mixVal = 0.5f;
 
 //Initializing transformation matrix (rotation, scaling, translation)
-glm::mat4 trans = glm::mat4(1.0f);
-glm::mat4 mouseTransform = glm::mat4(1.0f);
+glm::mat4 g_trans = glm::mat4(1.0f);
 
-void framebufferSizeCallback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow* window);
+Camera g_camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float g_deltaTime = 0.0f;
+float g_lastFrame = 0.0f;
+
+float g_x, g_y, g_z;
+
 
 Joystick mainJ(0);
 
@@ -48,18 +55,21 @@ int main()
 	glfwInit();
 
 	//Shows OpenGL the version used and needed functions
-	glfwInitHint(GLFW_VERSION_MAJOR, OPENGL_VERSION_MAJOR);
-	glfwInitHint(GLFW_VERSION_MINOR, OPENGL_VERSION_MINOR);
+	glfwInitHint(GLFW_VERSION_MAJOR, G_OPENGL_VERSION_MAJOR);
+	glfwInitHint(GLFW_VERSION_MINOR, G_OPENGL_VERSION_MINOR);
 	glfwInitHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//Window creation and check
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Terrain Editor", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "Terrain Editor", NULL, NULL);
 	if (!window)
 	{
 		std::cout << "Error while creating window\n";
 		glfwTerminate();
 		return -1;
 	}
+	
+	//Hide the cursor
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	//Use newly created window to draw frames in it
 	glfwMakeContextCurrent(window);
@@ -73,7 +83,7 @@ int main()
 	}
 
 	//Creates render area in a window
-	glViewport(0, 0, WIDTH, HEIGHT);
+	glViewport(0, 0, g_width, g_height);
 	
 	//Callback on resize
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
@@ -83,36 +93,83 @@ int main()
 	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
 	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
 	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
+	
+	//Enable z axis
+	glEnable(GL_DEPTH_TEST);
 
 
 	//Setting Up Shaders
-	Shader shader(vertexShaderPath, fragmentShaderPath);
-	shader.activate();
-	shader.setMat4("transform", trans);
-
-
+	Shader shader(G_VERTEX_SHADER_PATH, G_FRAGMENT_SHADER_PATH);
+	
 	/*---------------------------------Preparing Data to Render---------------------------------*/
 
 	//Vertex array
+	//Quad
+	//float vertices[] =
+	//{
+	//	//Positions             Colors				 Textures
+	//	-0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 0.5f,	 0.0f, 0.0f,
+	//	-0.5f,  0.5f, 0.0f,     0.5f, 1.0f, 0.75f,	 0.0f, 1.0f,
+	//	 0.5f, -0.5f, 0.0f,     0.6f, 1.0f, 0.2f,    1.0f, 0.0f,
+	//	 0.5f,  0.5f, 0.0f,     1.0f, 0.2f, 1.0f,	 1.0f, 1.0f
+	//};
+	//unsigned int indices[] =
+	//{
+	//	0, 1, 2,//first triangle
+	//	3, 1, 2//second triangle
+	//};
+
+	//Cube
 	float vertices[] =
 	{
-		//Positions             Colors				 Textures
-		-0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 0.5f,	 0.0f, 0.0f,
-		-0.5f,  0.5f, 0.0f,     0.5f, 1.0f, 0.75f,	 0.0f, 1.0f,
-		 0.5f, -0.5f, 0.0f,     0.6f, 1.0f, 0.2f,    1.0f, 0.0f,
-		 0.5f,  0.5f, 0.0f,     1.0f, 0.2f, 1.0f,	 1.0f, 1.0f
-	};
-	unsigned int indices[] =
-	{
-		0, 1, 2,//first triangle
-		3, 1, 2//second triangle
+		//Vertices            Textures
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
-	//VAO, VBO, EBO creation, 1 for each
-	unsigned int VAO, VBO, EBO;
+	//VAO, VBO, 1 for each
+	unsigned int VAO, VBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
 
 	//Bind VAO, VBO, to set them as active, and provide vertices to VBO
 	glBindVertexArray(VAO);
@@ -120,18 +177,18 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	//Add VBO's pure vertices as the 1st attribute to VAO
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
 	glEnableVertexAttribArray(0);
 	//Add VBO's colors as the 2nd attribute to VAO
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
 	//Add VBO's texture coordinates as the 3rd attribute to VAO
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	//Add EBO (indices of vertices) to VAO
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	//Texture setup
 	//Create texture id, bind texture type to it
@@ -152,7 +209,7 @@ int main()
 	//Image loading
 	int width, height, nChannels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(wallTexturePath, &width, &height, &nChannels, 0);
+	unsigned char* data = stbi_load(G_WALL_TEXTURE_PATH, &width, &height, &nChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -161,7 +218,7 @@ int main()
 	}
 	else
 	{
-		std::cout << "failed to load texture " << wallTexturePath << '\n';
+		std::cout << "failed to load texture " << G_WALL_TEXTURE_PATH << '\n';
 	}
 	stbi_image_free(data);
 
@@ -169,7 +226,7 @@ int main()
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
 
-	data = stbi_load(smileFaceTexturePath, &width, &height, &nChannels, 0);
+	data = stbi_load(G_SMILEY_FACE_TEXTURE_PATH, &width, &height, &nChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -177,7 +234,7 @@ int main()
 	}
 	else
 	{
-		std::cout << "failed to load texture " << smileFaceTexturePath << '\n';
+		std::cout << "failed to load texture " << G_SMILEY_FACE_TEXTURE_PATH << '\n';
 	}
 	stbi_image_free(data);
 
@@ -199,15 +256,30 @@ int main()
 		std::cout << "Checking for joystick... It's not present.\n";
 	}
 
+	//Point to look at
+	g_x = 0.0f;
+	g_y = 0.0f;
+	g_z = 3.0f;
+	
+	//Create MVP matrices
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view;
+	glm::mat4 projection = glm::mat4(1.0f);
+
 	//Run window until closed for a reason
 	while (!glfwWindowShouldClose(window))
 	{
-		//Process user inputs
-		processInput(window);
+		//Calculate time between frames
+		double currentTime = glfwGetTime();
+		g_deltaTime = currentTime - g_lastFrame;
+		g_lastFrame = currentTime;
 
-		//Set the flush color and flush back buffer
-		glClearColor(peachColor.x, peachColor.y, peachColor.z, peachColor.a);
-		glClear(GL_COLOR_BUFFER_BIT);
+		//Process user inputs
+		processInput(window, g_deltaTime);
+
+		//Set the flush color and flush back buffer and depth buffer
+		glClearColor(G_PEACH_COLOR.x, G_PEACH_COLOR.y, G_PEACH_COLOR.z, G_PEACH_COLOR.a);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//Activation of needed texture using texture units and setting unit to point to desired texture
 		glActiveTexture(GL_TEXTURE0);
@@ -215,14 +287,23 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		//trans = glm::rotate(trans, glm::radians((float)glfwGetTime() / 100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		//Model - matrix for every single object to convert its vertex coordinates to world coordinates
+		//View - matrix that defines how we see the world (camera, its position, where it looks)
+		//Projection - matrix of how we see the world (FOV, aspect ratio, nearest seen point, farthest seen point)
+		model = glm::rotate(model, g_deltaTime * glm::radians(-55.0f), glm::vec3(0.5f));
+		view = g_camera.getViewMatrix();
+		projection = glm::perspective(glm::radians(g_camera.zoom), (float)g_width / (float)g_height, 0.1f, 100.0f);
 
-		//Changing rotation angle 
-		shader.setMat4("transform", trans);
-		shader.setFloat("mixVal", mixVal);
+		//Changing mix value between 2 textures
+		shader.activate();
+		shader.setMat4("model", model);
+		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
+		shader.setFloat("mixVal", g_mixVal);
 		//Draw Shapes from VAO with needed attributes, using needed program and vertex indices
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
 		//Set current frame from back buffer and process any events related to a window
 		glfwSwapBuffers(window);
@@ -233,7 +314,6 @@ int main()
 	/*---------------------------------End Program Correctly---------------------------------*/
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 	glDeleteTextures(1, &texture1);
 	glDeleteTextures(1, &texture2);
 	glfwDestroyWindow(window);
@@ -244,11 +324,13 @@ int main()
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
+	g_width = width;
+	g_height = height;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, double dt)
 {
-	if(Keyboard::key(GLFW_KEY_ESCAPE) || mainJ.buttonState(GLFW_JOYSTICK_BTN_RIGHT))
+	if (Keyboard::key(GLFW_KEY_ESCAPE) || mainJ.buttonState(GLFW_JOYSTICK_BTN_RIGHT))
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
@@ -256,51 +338,56 @@ void processInput(GLFWwindow* window)
 	//Changes mix value between 2 textures
 	if (Keyboard::keyWentDown(GLFW_KEY_UP))
 	{
-		mixVal += .05f;
-		if (mixVal > 1)
+		g_mixVal += .05f;
+		if (g_mixVal > 1)
 		{
-			mixVal = 1.0f;
+			g_mixVal = 1.0f;
 		}
 	}
 	if (Keyboard::keyWentDown(GLFW_KEY_DOWN))
 	{
-		mixVal -= .05f;
-		if (mixVal < 0)
+		g_mixVal -= .05f;
+		if (g_mixVal < 0)
 		{
-			mixVal = 0.0f;
+			g_mixVal = 0.0f;
 		}
 	}
 
-	//Keyboard testing
+	//Move camera
 	if (Keyboard::key(GLFW_KEY_W))
 	{
-		trans = glm::translate(trans, glm::vec3(0.0f, 0.01f, 0.0f));
+		g_camera.updateCameraPos(CameraDirection::FORWARD, dt);
 	}
 	if (Keyboard::key(GLFW_KEY_S))
 	{
-		trans = glm::translate(trans, glm::vec3(0.0f, -0.01f, 0.0f));
-	}
-	if (Keyboard::key(GLFW_KEY_A))
-	{
-		trans = glm::translate(trans, glm::vec3(-0.01f, 0.0f, 0.0f));
+		g_camera.updateCameraPos(CameraDirection::BACKWARD, dt);
 	}
 	if (Keyboard::key(GLFW_KEY_D))
 	{
-		trans = glm::translate(trans, glm::vec3(0.01f, 0.0f, 0.0f));
+		g_camera.updateCameraPos(CameraDirection::RIGHT, dt);
+	}
+	if (Keyboard::key(GLFW_KEY_A))
+	{
+		g_camera.updateCameraPos(CameraDirection::LEFT, dt);
+	}
+	if (Keyboard::key(GLFW_KEY_SPACE))
+	{
+		g_camera.updateCameraPos(CameraDirection::UP, dt);
+	}
+	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT))
+	{
+		g_camera.updateCameraPos(CameraDirection::DOWN, dt);
 	}
 
-
-	//Joystick testing
-	mainJ.update();
-
-	float lx = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X);
-	float ly = -mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y);
-	if (std::abs(lx) > 0.5f)
+	double dx = Mouse::getDX(), dy = Mouse::getDY();
+	if (dx != 0 || dy != 0)
 	{
-		trans = glm::translate(trans, glm::vec3(lx / 1000, 0.0f, 0.0f));
+		g_camera.updateCameraDirection(dx, dy);
 	}
-	if (std::abs(ly) > 0.5f)
+
+	double scrollDY = Mouse::getScrollDY();
+	if(scrollDY != 0)
 	{
-		trans = glm::translate(trans, glm::vec3(0.0f, ly / 1000, 0.0f));
+		g_camera.updateCameraZoom(scrollDY);
 	}
 }
