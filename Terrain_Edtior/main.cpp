@@ -13,24 +13,36 @@
 
 #include <stb/stb_image.h>
 
-#include "shader.h"
+#include "Shader.h"
+#include "Keyboard.h"
+#include "Mouse.h"
+#include "Joystick.h"
 
 const int WIDTH = 640, HEIGHT = 480;
 const int OPENGL_VERSION_MAJOR = 3, OPENGL_VERSION_MINOR = 4;
 const glm::vec4 peachColor = { 1.0f, 0.898f, 0.706f, 1.0f };//glm test
+
+//Shaders
 const char* vertexShaderPath = "./vertex_shader.glsl";
 const char* fragmentShaderPath = "./fragment_shader.glsl";
+
+//Textures
 const char* wallTexturePath = "./wall.jpg";
 const char* smileFaceTexturePath = "./smile_face.png";
+
+float mixVal = 0.5f;
+
+//Initializing transformation matrix (rotation, scaling, translation)
+glm::mat4 trans = glm::mat4(1.0f);
+glm::mat4 mouseTransform = glm::mat4(1.0f);
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow* window);
 
+Joystick mainJ(0);
+
 int main()
 {
-	//Initializing transformation matrix (rotation, scaling, translation)
-	glm::mat4 trans = glm::mat4(1.0f);
-
 	/*---------------------------------Initialization---------------------------------*/
 	//Initializes OpenGL
 	glfwInit();
@@ -60,9 +72,18 @@ int main()
 		return -1;
 	}
 
-	//Creates render area in a window, sets callback on resize
+	//Creates render area in a window
 	glViewport(0, 0, WIDTH, HEIGHT);
+	
+	//Callback on resize
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+	//Keyboard callback
+	glfwSetKeyCallback(window, Keyboard::keyCallback);
+	//Mouse callbacks
+	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
+	glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
+	glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
+
 
 	//Setting Up Shaders
 	Shader shader(vertexShaderPath, fragmentShaderPath);
@@ -162,12 +183,21 @@ int main()
 
 	//Loading texture to a shader via uniform.
 	//We don't pass texture, it's already loaded to memory, we pass texture unit,
-	//that will reference to a loaded texture
+	//that will reference to a texture id, which will point to a texture in memory
 	shader.activate();
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 
 	/*---------------------------------Render, Calculate, Process, Repeat---------------------------------*/
+	mainJ.update();
+	if (mainJ.isPresent())
+	{
+		std::cout << mainJ.getName() << " is present.\n";
+	}
+	else
+	{
+		std::cout << "Checking for joystick... It's not present.\n";
+	}
 
 	//Run window until closed for a reason
 	while (!glfwWindowShouldClose(window))
@@ -185,10 +215,11 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		//Changing rotation angle
-		trans = glm::rotate(trans, glm::radians((float)glfwGetTime() / 100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		shader.setMat4("transform", trans);
+		//trans = glm::rotate(trans, glm::radians((float)glfwGetTime() / 100.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
+		//Changing rotation angle 
+		shader.setMat4("transform", trans);
+		shader.setFloat("mixVal", mixVal);
 		//Draw Shapes from VAO with needed attributes, using needed program and vertex indices
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) 0);
@@ -203,6 +234,8 @@ int main()
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+	glDeleteTextures(1, &texture1);
+	glDeleteTextures(1, &texture2);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
@@ -215,8 +248,59 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 void processInput(GLFWwindow* window)
 {
-	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if(Keyboard::key(GLFW_KEY_ESCAPE) || mainJ.buttonState(GLFW_JOYSTICK_BTN_RIGHT))
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	//Changes mix value between 2 textures
+	if (Keyboard::keyWentDown(GLFW_KEY_UP))
+	{
+		mixVal += .05f;
+		if (mixVal > 1)
+		{
+			mixVal = 1.0f;
+		}
+	}
+	if (Keyboard::keyWentDown(GLFW_KEY_DOWN))
+	{
+		mixVal -= .05f;
+		if (mixVal < 0)
+		{
+			mixVal = 0.0f;
+		}
+	}
+
+	//Keyboard testing
+	if (Keyboard::key(GLFW_KEY_W))
+	{
+		trans = glm::translate(trans, glm::vec3(0.0f, 0.01f, 0.0f));
+	}
+	if (Keyboard::key(GLFW_KEY_S))
+	{
+		trans = glm::translate(trans, glm::vec3(0.0f, -0.01f, 0.0f));
+	}
+	if (Keyboard::key(GLFW_KEY_A))
+	{
+		trans = glm::translate(trans, glm::vec3(-0.01f, 0.0f, 0.0f));
+	}
+	if (Keyboard::key(GLFW_KEY_D))
+	{
+		trans = glm::translate(trans, glm::vec3(0.01f, 0.0f, 0.0f));
+	}
+
+
+	//Joystick testing
+	mainJ.update();
+
+	float lx = mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X);
+	float ly = -mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y);
+	if (std::abs(lx) > 0.5f)
+	{
+		trans = glm::translate(trans, glm::vec3(lx / 1000, 0.0f, 0.0f));
+	}
+	if (std::abs(ly) > 0.5f)
+	{
+		trans = glm::translate(trans, glm::vec3(0.0f, ly / 1000, 0.0f));
 	}
 }
