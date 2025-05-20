@@ -51,6 +51,9 @@
     <ClCompile Include="Renderer\Shaders\Shader.cpp">
       <Filter>Исходные файлы\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="IO\Camera.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\fragment_shader.glsl">
@@ -72,6 +75,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\Shaders\Shader.h">
       <Filter>Исходные файлы\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Camera.h">
+      <Filter>Исходные файлы\IO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
