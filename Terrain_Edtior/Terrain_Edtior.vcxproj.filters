@@ -22,6 +22,12 @@
     <Filter Include="Файлы ресурсов\Shaders">
       <UniqueIdentifier>{a8e4c939-d0b3-47cf-bde8-064d0e59783b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы ресурсов\Textures">
+      <UniqueIdentifier>{ca17e7bd-9ff4-4e16-b3af-b9ce0befb9e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\IO">
+      <UniqueIdentifier>{0c9a098a-eed7-4a2c-840e-6a63bec069d1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -36,6 +42,15 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Исходные файлы\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Joystick.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment_shader.glsl">
@@ -49,5 +64,22 @@
     <ClInclude Include="Shader.h">
       <Filter>Исходные файлы\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Joystick.h">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="wall.jpg">
+      <Filter>Файлы ресурсов\Textures</Filter>
+    </Image>
+    <Image Include="smile_face.png">
+      <Filter>Файлы ресурсов\Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

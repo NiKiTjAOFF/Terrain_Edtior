@@ -87,6 +87,26 @@ GLuint Shader::compileShader(const char* filePath, GLenum type)
 	return shaderTypeId;
 }
 
+void Shader::setBool(const std::string& name, bool val)
+{
+	glUniform1i(glGetUniformLocation((id), name.c_str()), (int) val);
+}
+
+void Shader::setInt(const std::string& name, int val)
+{
+	glUniform1i(glGetUniformLocation((id), name.c_str()), val);
+}
+
+void Shader::setFloat(const std::string& name, float val)
+{
+	glUniform1f(glGetUniformLocation((id), name.c_str()), val);
+}
+
+void Shader::set4Float(const std::string& name, float v1, float v2, float v3, float v4)
+{
+	glUniform4f(glGetUniformLocation((id), name.c_str()), v1, v2, v3, v4);
+}
+
 void Shader::setMat4(const std::string& name, glm::mat4 val)
 {
 	glUniformMatrix4fv(glGetUniformLocation((id), name.c_str()), 1, GL_FALSE, glm::value_ptr(val));
