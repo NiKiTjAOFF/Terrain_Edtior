@@ -13,22 +13,22 @@
 
 #include <stb/stb_image.h>
 
-#include "Shader.h"
-#include "Keyboard.h"
-#include "Mouse.h"
-#include "Joystick.h"
+#include "./Renderer/Shaders/Shader.h"
+#include "IO/Keyboard.h"
+#include "IO/Mouse.h"
+#include "IO/Joystick.h"
 
 const int WIDTH = 640, HEIGHT = 480;
 const int OPENGL_VERSION_MAJOR = 3, OPENGL_VERSION_MINOR = 4;
 const glm::vec4 peachColor = { 1.0f, 0.898f, 0.706f, 1.0f };//glm test
 
 //Shaders
-const char* vertexShaderPath = "./vertex_shader.glsl";
-const char* fragmentShaderPath = "./fragment_shader.glsl";
+const char* vertexShaderPath = "./Assets/Shaders/vertex_shader.glsl";
+const char* fragmentShaderPath = "./Assets/Shaders/fragment_shader.glsl";
 
 //Textures
-const char* wallTexturePath = "./wall.jpg";
-const char* smileFaceTexturePath = "./smile_face.png";
+const char* wallTexturePath = "./Assets/Textures/wall.jpg";
+const char* smileFaceTexturePath = "./Assets/Textures/smile_face.png";
 
 float mixVal = 0.5f;
 
