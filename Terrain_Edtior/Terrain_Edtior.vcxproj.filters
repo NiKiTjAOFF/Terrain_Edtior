@@ -22,6 +22,9 @@
     <Filter Include="Файлы ресурсов\Shaders">
       <UniqueIdentifier>{a8e4c939-d0b3-47cf-bde8-064d0e59783b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы ресурсов\Textures">
+      <UniqueIdentifier>{ca17e7bd-9ff4-4e16-b3af-b9ce0befb9e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -49,5 +52,13 @@
     <ClInclude Include="Shader.h">
       <Filter>Исходные файлы\Shaders</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="wall.jpg">
+      <Filter>Файлы ресурсов\Textures</Filter>
+    </Image>
+    <Image Include="smile_face.png">
+      <Filter>Файлы ресурсов\Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

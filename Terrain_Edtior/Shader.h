@@ -27,5 +27,9 @@ public:
 	GLuint compileShader(const char* filepath, GLenum type);
 
 	//uniform functions
+	void setBool(const std::string& name, bool val);
+	void setInt(const std::string& name, int val);
+	void setFloat(const std::string& name, float val);
+	void set4Float(const std::string& name, float v1, float v2, float v3, float v4);
 	void setMat4(const std::string& name, glm::mat4 val);
 };
