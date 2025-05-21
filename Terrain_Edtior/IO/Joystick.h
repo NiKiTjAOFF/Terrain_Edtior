@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JOYSTICK_H
+#define JOYSTICK_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -62,3 +63,5 @@ public:
 
 	static int getId(int i);
 };
+
+#endif

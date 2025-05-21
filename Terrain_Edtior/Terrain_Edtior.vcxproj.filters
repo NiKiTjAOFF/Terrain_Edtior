@@ -28,6 +28,27 @@
     <Filter Include="Исходные файлы\Renderer">
       <UniqueIdentifier>{cb11f886-36a4-451e-b230-5ee3d77013ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы ресурсов\Shaders\FragmentShaders">
+      <UniqueIdentifier>{d7a42d81-36e4-4217-ad7c-ca2bf938e87f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Shaders\VertexShaders">
+      <UniqueIdentifier>{b233d4dc-d136-4f67-90b1-8f6ae2764289}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Renderer\Shaders">
+      <UniqueIdentifier>{84927b04-bf76-441d-b4b1-22ccbdc9d106}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Renderer\Textures">
+      <UniqueIdentifier>{7b3ac17c-9242-4b39-a1f1-37384c7c74c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Renderer\Mesh">
+      <UniqueIdentifier>{5c097e2c-f0c7-4797-afcb-c4dc48316574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Renderer\Model">
+      <UniqueIdentifier>{3c8d730f-e7f1-4ae3-8c29-f95c5944879b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Renderer\Model\Models">
+      <UniqueIdentifier>{439b82db-b943-4b01-b54c-c4a1cc42873d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -48,19 +69,31 @@
     <ClCompile Include="Libs\stb.cpp">
       <Filter>Исходные файлы\Libs</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Shaders\Shader.cpp">
-      <Filter>Исходные файлы\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="IO\Camera.cpp">
       <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Screen.cpp">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shaders\Shader.cpp">
+      <Filter>Исходные файлы\Renderer\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Textures\Texture.cpp">
+      <Filter>Исходные файлы\Renderer\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Mesh\Mesh.cpp">
+      <Filter>Исходные файлы\Renderer\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Model\Model.cpp">
+      <Filter>Исходные файлы\Renderer\Model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\fragment_shader.glsl">
-      <Filter>Файлы ресурсов\Shaders</Filter>
+      <Filter>Файлы ресурсов\Shaders\FragmentShaders</Filter>
     </None>
     <None Include="Assets\Shaders\vertex_shader.glsl">
-      <Filter>Файлы ресурсов\Shaders</Filter>
+      <Filter>Файлы ресурсов\Shaders\VertexShaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -73,11 +106,26 @@
     <ClInclude Include="IO\Mouse.h">
       <Filter>Исходные файлы\IO</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Shaders\Shader.h">
-      <Filter>Исходные файлы\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="IO\Camera.h">
       <Filter>Исходные файлы\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Screen.h">
+      <Filter>Исходные файлы\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Shaders\Shader.h">
+      <Filter>Исходные файлы\Renderer\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Textures\Texture.h">
+      <Filter>Исходные файлы\Renderer\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Mesh\Mesh.h">
+      <Filter>Исходные файлы\Renderer\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Model\Model.h">
+      <Filter>Исходные файлы\Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Model\Models\Cube.hpp">
+      <Filter>Исходные файлы\Renderer\Model\Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
