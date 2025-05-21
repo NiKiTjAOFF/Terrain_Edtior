@@ -75,6 +75,11 @@ void Camera::updateCameraZoom(double dy)
 	}
 }
 
+float Camera::getZoom()
+{
+	return zoom;
+}
+
 glm::mat4 Camera::getViewMatrix()
 {
 	return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);

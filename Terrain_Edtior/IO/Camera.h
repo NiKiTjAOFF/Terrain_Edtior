@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,6 +38,10 @@ public:
 	void updateCameraPos(CameraDirection dir, double dt);
 	void updateCameraZoom(double dy);
 
+	float getZoom();
+
 	glm::mat4 getViewMatrix();
 
 };
+
+#endif

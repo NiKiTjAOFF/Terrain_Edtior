@@ -155,10 +155,14 @@
     <ClCompile Include="IO\Joystick.cpp" />
     <ClCompile Include="IO\Keyboard.cpp" />
     <ClCompile Include="IO\Mouse.cpp" />
+    <ClCompile Include="IO\Screen.cpp" />
     <ClCompile Include="Libs\glad.c" />
     <ClCompile Include="Libs\stb.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer\Mesh\Mesh.cpp" />
+    <ClCompile Include="Renderer\Model\Model.cpp" />
     <ClCompile Include="Renderer\Shaders\Shader.cpp" />
+    <ClCompile Include="Renderer\Textures\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\fragment_shader.glsl" />
@@ -169,7 +173,12 @@
     <ClInclude Include="IO\Joystick.h" />
     <ClInclude Include="IO\Keyboard.h" />
     <ClInclude Include="IO\Mouse.h" />
+    <ClInclude Include="IO\Screen.h" />
+    <ClInclude Include="Renderer\Mesh\Mesh.h" />
+    <ClInclude Include="Renderer\Model\Model.h" />
+    <ClInclude Include="Renderer\Model\Models\Cube.hpp" />
     <ClInclude Include="Renderer\Shaders\Shader.h" />
+    <ClInclude Include="Renderer\Textures\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Textures\smile_face.png" />

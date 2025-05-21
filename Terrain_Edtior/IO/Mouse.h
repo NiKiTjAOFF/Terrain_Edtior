@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MOUSE_H
+#define MOUSE_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -40,3 +41,5 @@ public:
 	static bool buttonWentUp(int button);
 	static bool buttonWentDown(int button);
 };
+
+#endif

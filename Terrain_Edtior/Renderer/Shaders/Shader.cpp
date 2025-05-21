@@ -7,7 +7,12 @@ unsigned int Shader::getShaderProgramId()
 	return this->id;
 }
 
+Shader::Shader() {}
 Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath)
+{
+	generate(vertexShaderPath, fragmentShaderPath);
+}
+void Shader::generate(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
 	//Initializing values for debug purposes
 	int success;
