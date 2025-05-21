@@ -246,6 +246,8 @@ int main()
 	shader.setInt("texture2", 1);
 
 	/*---------------------------------Render, Calculate, Process, Repeat---------------------------------*/
+	
+	//Joystick check
 	mainJ.update();
 	if (mainJ.isPresent())
 	{
@@ -288,13 +290,13 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		//Model - matrix for every single object to convert its vertex coordinates to world coordinates
-		//View - matrix that defines how we see the world (camera, its position, where it looks)
+		//View - matrix that defines how to get to point from which we see the world (camera, its position, where it looks)
 		//Projection - matrix of how we see the world (FOV, aspect ratio, nearest seen point, farthest seen point)
 		model = glm::rotate(model, g_deltaTime * glm::radians(-55.0f), glm::vec3(0.5f));
 		view = g_camera.getViewMatrix();
 		projection = glm::perspective(glm::radians(g_camera.zoom), (float)g_width / (float)g_height, 0.1f, 100.0f);
 
-		//Changing mix value between 2 textures
+		//Changing mix value between 2 textures and adding MVP matrices
 		shader.activate();
 		shader.setMat4("model", model);
 		shader.setMat4("view", view);
@@ -303,7 +305,6 @@ int main()
 		//Draw Shapes from VAO with needed attributes, using needed program and vertex indices
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
 
 		//Set current frame from back buffer and process any events related to a window
 		glfwSwapBuffers(window);
@@ -379,12 +380,14 @@ void processInput(GLFWwindow* window, double dt)
 		g_camera.updateCameraPos(CameraDirection::DOWN, dt);
 	}
 
+	//Change Yaw and Pitch of a camera
 	double dx = Mouse::getDX(), dy = Mouse::getDY();
 	if (dx != 0 || dy != 0)
 	{
 		g_camera.updateCameraDirection(dx, dy);
 	}
 
+	//Change FOV of a camera
 	double scrollDY = Mouse::getScrollDY();
 	if(scrollDY != 0)
 	{
