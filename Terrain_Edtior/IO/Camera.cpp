@@ -2,12 +2,13 @@
 
 Camera::Camera(glm::vec3 position)
 	: cameraPos(position),
-	worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-	yaw(-90.0f),
+	worldY(glm::vec3(0.0f, 1.0f, 0.0f)),
+	yaw(0.0f),
 	pitch(0.0f),
-	speed(2.5f),
+	speed(10.0f),
 	zoom(45.0f),
-	cameraFront(glm::vec3(0.0f, 0.0f, -1.0f))
+	shouldMoveRelativeToWorldYAxis(true),
+	cameraFront(glm::vec3(0.0f, 0.0f, 0.0f))
 {
 	updateCameraVectors();
 }
@@ -31,32 +32,33 @@ void Camera::updateCameraDirection(double dx, double dy)
 void Camera::updateCameraPos(CameraDirection direction, double dt)
 {
 	float velocity = (float)dt * speed;
+	glm::vec3 vectorX = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
+	glm::vec3 vectorY = glm::normalize(glm::vec3(0.0f, cameraUp.y, 0.0f));
+	glm::vec3 vectorZ = glm::normalize(glm::vec3(cameraRight.x, 0.0f, cameraRight.z));
 
 	if (direction == CameraDirection::FORWARD)
 	{
-		cameraPos += cameraFront * velocity;
+		cameraPos += vectorX * velocity;
 	}
 	else if (direction == CameraDirection::BACKWARD)
 	{
-		cameraPos -= cameraFront * velocity;
+		cameraPos -= vectorX * velocity;
 	}
 	else if (direction == CameraDirection::RIGHT)
 	{
-		cameraPos += cameraRight * velocity;
+		cameraPos += vectorZ * velocity;
 	}
 	else if (direction == CameraDirection::LEFT)
 	{
-		cameraPos -= cameraRight * velocity;
+		cameraPos -= vectorZ * velocity;
 	}
 	else if (direction == CameraDirection::UP)
 	{
-		cameraPos += cameraUp * velocity;
-		//cameraPos += worldUp * velocity;//If needed movement relative to world
+		cameraPos += vectorY * velocity;
 	}
 	else if (direction == CameraDirection::DOWN)
 	{
-		cameraPos -= cameraUp * velocity;
-		//cameraPos -= worldUp * velocity;
+		cameraPos -= vectorY * velocity;
 	}
 }
 void Camera::updateCameraZoom(double dy)
@@ -93,6 +95,6 @@ void Camera::updateCameraVectors()
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(direction);
 
-	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
+	cameraRight = glm::normalize(glm::cross(cameraFront, worldY));
 	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 }

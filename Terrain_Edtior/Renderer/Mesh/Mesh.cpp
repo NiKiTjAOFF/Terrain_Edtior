@@ -1,61 +1,44 @@
 #include "Mesh.h"
 
-std::vector<Vertex> Vertex::genList(float* vertices, int numberOfVertices)
+Mesh::Mesh() {}
+Mesh::Mesh
+(
+	std::vector<float> positions, std::vector<float> normals,
+	std::vector<float> textureCoordinates, std::vector<unsigned int> indices,
+	std::vector<Texture> textures
+)
+	: positions(positions), normals(normals), textureCoordinates(textureCoordinates),
+	indices(indices), textures(textures)
 {
-	std::vector<Vertex> ret(numberOfVertices);
-
-	int stride = sizeof(Vertex) / sizeof(float);
-
-	for (int i = 0; i < numberOfVertices; i++)
-	{
-		ret[i].position = glm::vec3(
-			vertices[i * stride + 0],
-			vertices[i * stride + 1],
-			vertices[i * stride + 2]
-		);
-
-		ret[i].textureCoordinates = glm::vec2(
-			vertices[i * stride + 3],
-			vertices[i * stride + 4]
-		);
-	}
-
-	return ret;
+	setup();
 }
 
 void Mesh::setup()
 {
 	//Create VAO, VBO, EBO 1 for each
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	//Bind VAO, VBO, to set them as active, and provide vertices to VBO
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
 	//Add EBO (indices of vertices) to VAO
+	glBindVertexArray(VAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-	//Add VBO's pure vertices as the 1st attribute to VAO
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-
-	//Add VBO's texture coordinates as the 2nd attribute to VAO
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, textureCoordinates));
-
-	//Unbind current VAO to process another or it in the future
 	glBindVertexArray(0);
 }
 
-Mesh::Mesh() {}
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
-	: vertices(vertices), indices(indices), textures(textures)
+void Mesh::addAttribute(int id, int attribSize, std::vector<float> data)
 {
-	setup();
+	glBindVertexArray(VAO);
+
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(id);
+	glVertexAttribPointer(id, attribSize, GL_FLOAT, GL_FALSE, attribSize * sizeof(float), (void*)0);
+
+	glBindVertexArray(0);
 }
 
 void Mesh::render(Shader shader)
@@ -79,8 +62,13 @@ void Mesh::render(Shader shader)
 void Mesh::cleanup()
 {
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+
+	for (size_t i = 0; i < VBOs.size(); i++)
+	{
+		glDeleteBuffers(1, &VBOs[i]);
+	}
+
 	for (size_t i = 0; i < textures.size(); i++)
 	{
 		glDeleteTextures(1, &textures[i].textureId);

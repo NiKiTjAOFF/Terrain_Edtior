@@ -25,12 +25,13 @@ public:
 	glm::vec3 cameraUp;
 	glm::vec3 cameraRight;
 
-	glm::vec3 worldUp;
+	glm::vec3 worldY;
 
 	float yaw;
 	float pitch;
 	float speed;
 	float zoom;// -> FOV
+	bool shouldMoveRelativeToWorldYAxis;
 
 	Camera(glm::vec3 position);
 
