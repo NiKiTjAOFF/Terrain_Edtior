@@ -8,6 +8,7 @@ PerlinNoise::PerlinNoise()
 void PerlinNoise::generateNoise()
 {
 	image.resize(width * height * nChannels);
+	heightMap.resize(width * height);
 	
 	std::mt19937 prng(seed);
 	std::uniform_int_distribution<int> dist(-100000, 100000);
@@ -43,7 +44,10 @@ void PerlinNoise::generateNoise()
 				frequency *= lacunarity;
 			}
 
-			int index = (y * width + x) * nChannels;
+			int index = y * width + x;
+			heightMap[index] = noiseHeight;
+			
+			index *= nChannels;
 			unsigned char color = (unsigned char)((noiseHeight + 1.0f) * 127.5f);
 			image[index] = color;
 			image[index + 1] = color;
@@ -61,4 +65,9 @@ void PerlinNoise::saveImage(const char* filename)
 void PerlinNoise::deleteImage()
 {
 	image.clear();
+}
+
+void PerlinNoise::deleteHeightMap()
+{
+	heightMap.clear();
 }

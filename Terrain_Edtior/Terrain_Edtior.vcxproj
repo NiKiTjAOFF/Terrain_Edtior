@@ -205,7 +205,10 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Textures\grass.jpg" />
+    <Image Include="Assets\Textures\rock.jpg" />
+    <Image Include="Assets\Textures\sand.jpg" />
     <Image Include="Assets\Textures\smile_face.png" />
+    <Image Include="Assets\Textures\snow.jpg" />
     <Image Include="Assets\Textures\wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

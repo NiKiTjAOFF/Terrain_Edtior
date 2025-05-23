@@ -61,6 +61,12 @@
     <Filter Include="Исходные файлы\Renderer\Mesh\Models\Terrain\Noise">
       <UniqueIdentifier>{05598bbe-1eb8-4eae-863c-c50abdec72a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы ресурсов\Textures\TerrainTextures">
+      <UniqueIdentifier>{09d00ec8-163b-478b-a664-26bd8c1be78e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Textures\CubeTextures">
+      <UniqueIdentifier>{372f98ee-5833-44f4-9660-98f695f7304e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -210,14 +216,23 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Assets\Textures\grass.jpg">
+      <Filter>Файлы ресурсов\Textures\TerrainTextures</Filter>
+    </Image>
+    <Image Include="Assets\Textures\rock.jpg">
+      <Filter>Файлы ресурсов\Textures\TerrainTextures</Filter>
+    </Image>
+    <Image Include="Assets\Textures\sand.jpg">
+      <Filter>Файлы ресурсов\Textures\TerrainTextures</Filter>
+    </Image>
+    <Image Include="Assets\Textures\snow.jpg">
+      <Filter>Файлы ресурсов\Textures\TerrainTextures</Filter>
+    </Image>
     <Image Include="Assets\Textures\smile_face.png">
-      <Filter>Файлы ресурсов\Textures</Filter>
+      <Filter>Файлы ресурсов\Textures\CubeTextures</Filter>
     </Image>
     <Image Include="Assets\Textures\wall.jpg">
-      <Filter>Файлы ресурсов\Textures</Filter>
-    </Image>
-    <Image Include="Assets\Textures\grass.jpg">
-      <Filter>Файлы ресурсов\Textures</Filter>
+      <Filter>Файлы ресурсов\Textures\CubeTextures</Filter>
     </Image>
   </ItemGroup>
 </Project>

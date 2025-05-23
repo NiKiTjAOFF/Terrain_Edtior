@@ -11,7 +11,7 @@
 #include <random>
 
 class PerlinNoise {
-    
+
 public:
     int width;
     int height;
@@ -23,6 +23,7 @@ public:
     float lacunarity;
     glm::vec2 offset;
     std::vector<unsigned char> image;
+    std::vector<float> heightMap;
 
     PerlinNoise();
 
@@ -30,6 +31,7 @@ public:
 
     void saveImage(const char* filename);
     void deleteImage();
+    void deleteHeightMap();
 };
 
 #endif

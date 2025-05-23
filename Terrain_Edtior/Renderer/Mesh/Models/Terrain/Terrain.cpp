@@ -1,51 +1,81 @@
 #include "Terrain.h"
 
-Terrain::Terrain(unsigned int gridX, unsigned int gridZ)
+Terrain::Terrain() 
+	:size(0.1f), textureRepeat(1.0f), maxHeight(1.0f),
+	sandThreshold(0.2f), grassThreshold(0.3f), rockThreshold(0.9f)
+{}
+
+bool Terrain::checkBounds(int index, int size)
 {
-	x = gridX * SIZE;
-	z = gridZ * SIZE;
-	init();
+	return ((index >= 0) && (index < size)) ? true : false;
 }
 
-void Terrain::init()
+void Terrain::init(float* heightMap, int width, int height)
 {
-	const int NUMBER_OF_VERTICES = VERTEX_COUNT * VERTEX_COUNT;
-	const int NUMBER_OF_INDICES = 6 * (VERTEX_COUNT - 1) * (VERTEX_COUNT - 1);
+	const int NUMBER_OF_VERTICES = width * height;
+	const int NUMBER_OF_INDICES = 6 * (height - 1) * (width - 1);
+	const int POSITIONS_SIZE = NUMBER_OF_VERTICES * 3;
+	const int NORMALS_SIZE = POSITIONS_SIZE;
+	const int TEXTURE_COORDINATES = NUMBER_OF_VERTICES * 2;
 	std::vector<float> positions, normals, textureCoordinates;
-	positions.resize(NUMBER_OF_VERTICES * 3);
-	normals.resize(NUMBER_OF_VERTICES * 3);
-	textureCoordinates.resize(NUMBER_OF_VERTICES * 2);
+	positions.resize(POSITIONS_SIZE);
+	normals.resize(NORMALS_SIZE);
+	textureCoordinates.resize(TEXTURE_COORDINATES);
 	
-	int vertexPointer = 0;
-	for (int i = 0; i < VERTEX_COUNT; i++)
+	int pointer = 0;
+	for (int z = 0; z < height; z++)
 	{
-		for (int j = 0; j < VERTEX_COUNT; j++)
+		for (int x = 0; x < width; x++)
 		{
 			//Vertices
-			positions[vertexPointer * 3] = (float)j / ((float)VERTEX_COUNT - 1) * SIZE;//x-axis
-			positions[vertexPointer * 3 + 1] = 0.0f;//y-axis
-			positions[vertexPointer * 3 + 2] = (float)i / ((float)VERTEX_COUNT - 1) * SIZE;//z-axis
+			positions[pointer * 3] = x;//x-axis
+			positions[pointer * 3 + 1] = heightMap[z * width + x];//y-axis
+			positions[pointer * 3 + 2] = z;//z-axis
 			//Normals
-			normals[vertexPointer * 3] = 0.0f;//x-axis
-			normals[vertexPointer * 3 + 1] = 1.0f;//y-axis
-			normals[vertexPointer * 3 + 2] = 0.0f;//z-axis
+			normals[pointer * 3] = 0.0f;//x-axis
+			normals[pointer * 3 + 1] = 1.0f;//y-axis
+			normals[pointer * 3 + 2] = 0.0f;//z-axis
 			//Texture coordinates
-			textureCoordinates[vertexPointer * 2] = (float)j / ((float)VERTEX_COUNT - 1);//x-axis
-			textureCoordinates[vertexPointer * 2 + 1] = (float)i / ((float)VERTEX_COUNT - 1);//y-axis
-			vertexPointer++;
+			textureCoordinates[pointer * 2] = (float)x / (float)width;//x-axis
+			textureCoordinates[pointer * 2 + 1] = (float) z / (float)height;//y-axis
+			pointer++;
 		}
 	}
 
+	//TODO: calculate terrain normals
+	//Counts normals according to neighboring height values
+	//pointer = 0;
+	//for (int z = 0; z < height; z++)
+	//{
+	//	for (int x = 0; x < width; x++)
+	//	{
+	//		int indexL = pointer * 3 + 1 - 3;//Left value
+	//		int indexR = pointer * 3 + 1 + 3;//Right value
+	//		int indexD = pointer * 3 + 1 - width;//Down value. Down: maybe + width
+	//		int indexU = pointer * 3 + 1 + width;//Up value. Up: maybe - width
+	//		float heightL = checkBounds(indexL, NORMALS_SIZE) ? positions[indexL] : 0.0f;
+	//		float heightR = checkBounds(indexR, NORMALS_SIZE) ? positions[indexR] : 0.0f;
+	//		float heightD = checkBounds(indexD, NORMALS_SIZE) ? positions[indexD] : 0.0f;
+	//		float heightU = checkBounds(indexU, NORMALS_SIZE) ? positions[indexU] : 0.0f;
+	//		glm::vec3 normal(glm::normalize(glm::vec3(heightL - heightR, 2.0f, heightD - heightU)));
+	//		//Normals
+	//		normals[pointer * 3] = normal.x;//x-axis
+	//		normals[pointer * 3 + 1] = normal.y;//y-axis
+	//		normals[pointer * 3 + 2] = normal.z;//z-axis
+	//		pointer++;
+	//	}
+	//}
+
 	std::vector<unsigned int> indices;
 	indices.resize(NUMBER_OF_INDICES);
-	int pointer = 0;
-	for (int gz = 0; gz < VERTEX_COUNT - 1; gz++)
+	pointer = 0;
+	for (int gz = 0; gz < height - 1; gz++)
 	{
-		for (int gx = 0; gx < VERTEX_COUNT - 1; gx++)
+		for (int gx = 0; gx < width- 1; gx++)
 		{
-			int topLeft = (gz * VERTEX_COUNT) + gx;
+			int topLeft = (gz * width) + gx;
 			int topRight = topLeft + 1;
-			int bottomLeft = ((gz + 1) * VERTEX_COUNT) + gx;
+			int bottomLeft = ((gz + 1) * width) + gx;
 			int bottomRight = bottomLeft + 1;
 			indices[pointer++] = topLeft;
 			indices[pointer++] = bottomLeft;
@@ -56,10 +86,16 @@ void Terrain::init()
 		}
 	}
 
-	Texture tex0(GRASS_TEXTURE_PATH, GRASS_TEXTURE_NAME);
-	tex0.load();
+	Texture sand(SAND_TEXTURE_PATH, SAND_TEXTURE_NAME);
+	Texture grass(GRASS_TEXTURE_PATH, GRASS_TEXTURE_NAME);
+	Texture rock(ROCK_TEXTURE_PATH, ROCK_TEXTURE_NAME);
+	Texture snow(SNOW_TEXTURE_PATH, SNOW_TEXTURE_NAME);
+	sand.load();
+	grass.load();
+	rock.load();
+	snow.load();
 
-	Mesh mesh(positions, normals, textureCoordinates, indices, { tex0 });
+	Mesh mesh(positions, normals, textureCoordinates, indices, { sand, grass, rock, snow });
 	mesh.addAttribute(0, 3, positions);
 	mesh.addAttribute(1, 3, normals);
 	mesh.addAttribute(2, 2, textureCoordinates);
@@ -96,4 +132,5 @@ void Terrain::cleanup()
 	{
 		mesh.cleanup();
 	}
+	meshes.clear();
 }

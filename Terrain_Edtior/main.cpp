@@ -1,3 +1,4 @@
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -48,23 +49,24 @@ const char* G_GLSL_VERSION = "#version 330";
 
 //PerlinNoise params
 const char* G_PERLIN_NOISE_FILENAME = "./Assets/Textures/Noise/perlin_noise.png";
-float g_noiseGenerationCooldown = 0.5f;
-float g_lastNoiseGeneratedTime = 0.0f;
-bool g_isNoiseGenerationNeeded = false;
-bool g_isNoiseGenerated = false;
-PerlinNoise noise;
 
-float g_mixVal = 0.5f;
-float g_numberOfTiles = Terrain::SIZE;
+//Terrain params
+bool g_isTerrainGenerated = false;
+bool g_isTerrainGenerationNeeded = false;
+float g_terrainGenerationCooldown = 0.5f;
+float g_lastTerrainGeneratedTime = 0.0f;
 
+//ImGui params
 bool g_isImGuiRenderNeeded = true;
 
+//Camera params
 Camera g_camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float g_nearPlane = 0.1f;
 float g_farPlane = 1000.0f;
 float g_deltaTime = 0.0f;
 float g_lastFrame = 0.0f;
 bool g_isCursorEnabled = false;
+bool g_isWiredModeEnabled = false;
 
 Joystick mainJ(0);
 
@@ -95,24 +97,26 @@ int main()
 	}
 
 	screen.setParameters();
-	
+
 	//Enable z-axis
 	glEnable(GL_DEPTH_TEST);
 
 	//Setting Up Shaders
 	Shader terrainShader(G_TERRAIN_VS_PATH, G_TERRAIN_FS_PATH);
 	Shader cubeShader(G_CUBE_VS_PATH, G_CUBE_FS_PATH);
-	
-	/*---------------------------------Preparing Data to Render---------------------------------*/
 
-	Terrain terrain(5, 5);
+	/*---------------------------------Preparing Data to Render---------------------------------*/
+	PerlinNoise noise;
+	Terrain terrain;
 	Cube cube;
 
-	Texture test;
-	
+	Texture noiseTexture;
+	noiseTexture.generate();
+	noiseTexture.setFilters(GL_LINEAR);
+	noiseTexture.setWrap(GL_REPEAT);
 
 	/*---------------------------------Render, Calculate, Process, Repeat---------------------------------*/
-	
+
 	//Joystick check
 	mainJ.update();
 	if (mainJ.isPresent())
@@ -165,40 +169,52 @@ int main()
 		cubeShader.activate();
 		cubeShader.setMat4("view", view);
 		cubeShader.setMat4("projection", projection);
-		cubeShader.setFloat("mixVal", g_mixVal);
 
-		//cube.render(cubeShader, glm::vec3(1.0f), 0.0f, glm::vec3(1.0f), MousePicker::update(projection, view));//TODO
+		//TODO add object placing using mousePicker
+		//cube.render(cubeShader, glm::vec3(1.0f), 0.0f, glm::vec3(1.0f), MousePicker::update(projection, view));
 		cube.render(cubeShader, glm::vec3(1.0f), 0.0f, glm::vec3(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 		cube.render(cubeShader, glm::vec3(1.0f), 30.0f, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -2.0f));
 		cube.render(cubeShader, glm::vec3(1.0f), 60.0f, glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
 		cube.render(cubeShader, glm::vec3(1.0f), 90.0f, glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(-2.0f, 0.0f, 0.0f));
 
 		//Rendering terrain
-		terrainShader.activate();
-		terrainShader.setMat4("view", view);
-		terrainShader.setMat4("projection", projection);
-		terrainShader.setFloat("numberOfTiles", g_numberOfTiles);
+		if (g_isTerrainGenerated)
+		{
+			//Vertex Shader
+			terrainShader.activate();
+			terrainShader.setMat4("view", view);
+			terrainShader.setMat4("projection", projection);
+			terrainShader.setFloat("textureRepeat", terrain.textureRepeat);
+			terrainShader.setFloat("maxHeight", terrain.maxHeight);
+			terrainShader.setFloat("size", terrain.size);
+			//Fragment Shader
+			terrainShader.setFloat("sandThreshold", terrain.sandThreshold);
+			terrainShader.setFloat("grassThreshold", terrain.grassThreshold);
+			terrainShader.setFloat("rockThreshold", terrain.rockThreshold);
 
-		terrain.render(terrainShader);
-		//terrain.render(terrainShader, glm::vec3(1.0f), 45.0f, glm::vec3(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+			terrain.render(terrainShader);
+		}
 
 		//Process noise creation
-
-		if (g_lastNoiseGeneratedTime <= g_noiseGenerationCooldown) {
-			g_lastNoiseGeneratedTime += g_deltaTime;
+		if (g_lastTerrainGeneratedTime <= g_terrainGenerationCooldown) {
+			g_lastTerrainGeneratedTime += g_deltaTime;
 		}
-		else if (g_isNoiseGenerationNeeded)
+		else if (g_isTerrainGenerationNeeded)
 		{
+			if (!terrain.meshes.empty())
+			{
+				terrain.cleanup();
+			}
+
 			noise.generateNoise();
-			test.generate();
-			test.setFilters(GL_LINEAR);
-			test.setWrap(GL_REPEAT);
-			test.load(&noise.image[0], noise.width, noise.height, noise.nChannels);
+			noiseTexture.load(&noise.image[0], noise.width, noise.height, noise.nChannels);
 			noise.deleteImage();
-			g_isNoiseGenerated = true;
-			g_lastNoiseGeneratedTime = 0.0f;
+			terrain.init(&noise.heightMap[0], noise.width, noise.height);
+			noise.deleteHeightMap();
+			g_isTerrainGenerated = true;
+			g_lastTerrainGeneratedTime = 0.0f;
 		}
-		
+
 		//Create UI window
 		if (g_isImGuiRenderNeeded) {
 
@@ -213,26 +229,29 @@ int main()
 				//Global Settings Tab
 				if (ImGui::BeginTabItem("Controls"))
 				{
-					ImGui::Text("Controls:                Keyboard/Mouse     | Joystick");
-					//Keyboard Controls
-					ImGui::Text("Keyboard controls");
-					ImGui::Text("Exit Program:            ESC                | Circle  ");
-					ImGui::Text("Move Forward:            W                  |         ");
-					ImGui::Text("Move Backwards:          S                  |         ");
-					ImGui::Text("Move Left:               A                  |         ");
-					ImGui::Text("Move Right:              D                  |         ");
-					ImGui::Text("Move Up:                 Space              |         ");
-					ImGui::Text("Move Down:               Left Shift         |         ");
-					ImGui::Text("Close/Open ImGui Window: Q                  |         ");
-					ImGui::Text("Hide/Show Mouse Cursor:  H                  |         ");
+					ImGui::Text("Controls:                   Keyboard/Mouse     | Joystick");
+					//Keyboard Controls					     
+					ImGui::Text("---------------------------------------------------------");
+					ImGui::Text("Keyboard controls");	     
+					ImGui::Text("Exit Program:               ESC                | Circle  ");
+					ImGui::Text("Move Forward:               W                  |         ");
+					ImGui::Text("Move Backwards:             S                  |         ");
+					ImGui::Text("Move Left:                  A                  |         ");
+					ImGui::Text("Move Right:                 D                  |         ");
+					ImGui::Text("Move Up:                    Space              |         ");
+					ImGui::Text("Move Down:                  Left Shift         |         ");
+					ImGui::Text("Close/Open ImGui Window:    Q                  |         ");
+					ImGui::Text("Hide/Show Mouse Cursor:     H                  |         ");
+					ImGui::Text("Enable/Disable wired mode:  M                  |         ");
 					//Mouse Controls
+					ImGui::Text("---------------------------------------------------------");
 					ImGui::Text("Mouse Controls");
-					ImGui::Text("Look Up:                 Mouse Up           |         ");
-					ImGui::Text("Look Down:               Mouse Down         |         ");
-					ImGui::Text("Look Left:               Mouse Left         |         ");
-					ImGui::Text("Look Right:              Mouse Right        |         ");
-					ImGui::Text("Zoom in:                 Mouse Wheel Up     |         ");
-					ImGui::Text("Zoom out:                Mouse Wheel Down   |         ");
+					ImGui::Text("Look Up:                    Mouse Up           |         ");
+					ImGui::Text("Look Down:                  Mouse Down         |         ");
+					ImGui::Text("Look Left:                  Mouse Left         |         ");
+					ImGui::Text("Look Right:                 Mouse Right        |         ");
+					ImGui::Text("Zoom in:                    Mouse Wheel Up     |         ");
+					ImGui::Text("Zoom out:                   Mouse Wheel Down   |         ");
 					ImGui::EndTabItem();
 				}
 
@@ -241,7 +260,7 @@ int main()
 				{
 					ImGui::SliderFloat("Mouse Sensitivity", &g_camera.mouseSensitivity, 0.1f, 1.0f);
 					ImGui::SliderFloat("Mouse Wheel Sensitivity", &g_camera.wheelSensitivity, 1.0f, 10.0f);
-					ImGui::SliderFloat("Movement Speed", &g_camera.speed, 1.0f, 15.0f);
+					ImGui::SliderFloat("Movement Speed", &g_camera.speed, 1.0f, 100.0f);
 					ImGui::Checkbox("Invert X-axis", &g_camera.invertX);
 					ImGui::Checkbox("Invert Y-axis", &g_camera.invertY);
 					ImGui::EndTabItem();
@@ -250,20 +269,33 @@ int main()
 				//Perlin Noise Tab
 				if (ImGui::BeginTabItem("Perlin Noise"))
 				{
-					ImGui::SliderInt("Image width", &noise.width, 1, 512);
-					ImGui::SliderInt("Image height", &noise.height, 1, 512);
+					ImGui::SliderInt("Image width", &noise.width, 2, 512);
+					ImGui::SliderInt("Image height", &noise.height, 2, 512);
 					ImGui::SliderInt("Noise seed", &noise.seed, 0, 255);
-					ImGui::SliderFloat("Scale", &noise.scale, 0.1f, 100.0f);
+					ImGui::SliderFloat("Scale", &noise.scale, 0.1f, 300.0f);
 					ImGui::SliderInt("Octaves", &noise.octaves, 1, 8);
 					ImGui::SliderFloat("Persistence", &noise.persistence, 0.0f, 1.0f);
 					ImGui::SliderFloat("Lacunarity", &noise.lacunarity, 1.0f, 10.0f);
 					ImGui::SliderFloat("Offset X", &noise.offset.x, 0.0f, 500.0f);
 					ImGui::SliderFloat("Offset Y", &noise.offset.y, 0.0f, 500.0f);
-					ImGui::Checkbox("Generate Perlin Noise", &g_isNoiseGenerationNeeded);
-					if (g_isNoiseGenerated)
+					ImGui::SliderFloat("Noise Generation Cooldown", &g_terrainGenerationCooldown, 0.15f, 0.5f);
+					ImGui::Checkbox("Generate Perlin Noise", &g_isTerrainGenerationNeeded);
+					if (g_isTerrainGenerated)
 					{
-						ImGui::Image(test.textureId, ImVec2(test.getTextureWidth(), test.getTextureHeight()));
+						ImGui::Image(noiseTexture.textureId, ImVec2(noiseTexture.getTextureWidth(), noiseTexture.getTextureHeight()));
 					}
+					ImGui::EndTabItem();
+				}
+
+				//Terrain Tab
+				if (ImGui::BeginTabItem("Terrain"))
+				{
+					ImGui::SliderFloat("Terrain Size X", &terrain.size, 0.01f, 1.0f);
+					ImGui::SliderFloat("Texture Repeat X", &terrain.textureRepeat, 1.0f, 50.0f);
+					ImGui::SliderFloat("Terrain Max Height", &terrain.maxHeight, 0.1f, 100.0f);
+					//ImGui::SliderFloat("Sand Threshold", &terrain.sandThreshold, 0.0f, 1.0f);
+					//ImGui::SliderFloat("Grass Threshold", &terrain.grassThreshold, terrain.sandThreshold, 1.0f);
+					//ImGui::SliderFloat("Rock Threshold", &terrain.rockThreshold, terrain.grassThreshold, 1.0f);
 					ImGui::EndTabItem();
 				}
 
@@ -333,6 +365,18 @@ void processInput(double dt)
 		g_isCursorEnabled = !g_isCursorEnabled;
 	}
 
+	//Switch between wired and normal mode
+	if (Keyboard::keyWentDown(GLFW_KEY_M)) {
+		if (!g_isWiredModeEnabled) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		g_isWiredModeEnabled = !g_isWiredModeEnabled;
+	}
+
 	//Enable ImGui rendering
 	if (Keyboard::keyWentDown(GLFW_KEY_Q))
 	{
@@ -385,7 +429,7 @@ void processInput(double dt)
 
 	//Change FOV of a camera
 	double scrollDY = Mouse::getScrollDY();
-	if(scrollDY != 0)
+	if (scrollDY != 0)
 	{
 		g_camera.updateCameraZoom(scrollDY);
 	}

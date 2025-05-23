@@ -5,22 +5,32 @@
 
 class Terrain : public Mesh
 {
-	static const unsigned int VERTEX_COUNT = 128;
+	const char* SAND_TEXTURE_PATH = "./Assets/Textures/sand.png";
+	const char* SAND_TEXTURE_NAME = "sand";
 
-	//const char* GRASS_TEXTURE_PATH = "./Assets/Textures/wall.jpg";
 	const char* GRASS_TEXTURE_PATH = "./Assets/Textures/grass.jpg";
-	const char* GRASS_TEXTURE_NAME = "Grass";
+	const char* GRASS_TEXTURE_NAME = "grass";
 
-	float x;
-	float z;
+	const char* ROCK_TEXTURE_PATH = "./Assets/Textures/rock.jpg";
+	const char* ROCK_TEXTURE_NAME = "rock";
 
+	const char* SNOW_TEXTURE_PATH = "./Assets/Textures/snow.jpg";
+	const char* SNOW_TEXTURE_NAME = "snow";
+
+	bool checkBounds(int index, int size);
 public:
-	static const unsigned int SIZE = 5;
+	float size;
+	float textureRepeat;
+	float maxHeight;
+	float sandThreshold;
+	float grassThreshold;
+	float rockThreshold;
+	float snowThreshold;
 	std::vector<Mesh> meshes;
 
-	Terrain(unsigned int gridX, unsigned int gridZ);
+	Terrain();
 
-	void init();
+	void init(float* heightMap, int width, int height);
 
 	void render(Shader shader);
 	void render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos);

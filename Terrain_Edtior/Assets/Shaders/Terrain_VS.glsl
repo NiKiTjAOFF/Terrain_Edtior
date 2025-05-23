@@ -4,16 +4,21 @@ layout (location = 1) in vec3 aNormals;
 layout (location = 2) in vec2 aTexCoord;
 
 out vec3 normals;
-out vec2 TexCoord;
+out vec2 texCoord;
+out float height;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform float numberOfTiles;
+uniform float maxHeight;
+uniform float textureRepeat;
+uniform float size;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos, 1.0);
-	TexCoord = aTexCoord * numberOfTiles;
+	gl_Position = projection * view * model * vec4(aPos.x * size, aPos.y * maxHeight, aPos.z * size, 1.0);
+	texCoord = aTexCoord * textureRepeat;
 	normals = aNormals;
+	height = (aPos.y + 1.0f) / 2.0f;
 }

@@ -32,6 +32,7 @@ void Mesh::addAttribute(int id, int attribSize, std::vector<float> data)
 
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
+	VBOs.push_back(VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
 

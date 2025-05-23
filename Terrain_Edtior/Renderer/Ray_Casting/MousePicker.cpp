@@ -12,7 +12,7 @@ glm::vec3 MousePicker::update(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
 	
 	return glm::normalize(worldCoords);
 
-	//TODO:
+	//TODO: MousePicker object placement point search
 	//Find point of intersection of a mouse ray and a terrain
 	/*if (intersectionInRange(0, RAY_RANGE, worldCoords))
 	{
@@ -49,7 +49,7 @@ glm::vec3 MousePicker::getWorldCoords(glm::mat4 viewMatrix, glm::vec4 viewCoords
 }
 
 
-//TODO:
+//TODO: Mouse Picker objtc placement point search additional functions
 //glm::vec3 MousePicker::getPointOnRay(glm::vec3 ray, float distance)
 //{
 //

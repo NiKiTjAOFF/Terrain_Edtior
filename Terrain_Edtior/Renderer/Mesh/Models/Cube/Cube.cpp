@@ -117,4 +117,5 @@ void Cube::cleanup()
 	{
 		mesh.cleanup();
 	}
+	meshes.clear();
 }

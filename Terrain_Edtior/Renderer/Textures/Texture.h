@@ -14,6 +14,7 @@ class Texture
 	int width;
 	int height;
 	int nChannels;
+	
 public:
 
 	int getTextureWidth();
