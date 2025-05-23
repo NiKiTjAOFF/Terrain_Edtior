@@ -28,10 +28,13 @@ public:
 	glm::vec3 worldY;
 
 	float yaw;
+	bool invertX;
 	float pitch;
+	bool invertY;
 	float speed;
 	float zoom;// -> FOV
-	bool shouldMoveRelativeToWorldYAxis;
+	float mouseSensitivity;
+	float wheelSensitivity;
 
 	Camera(glm::vec3 position);
 

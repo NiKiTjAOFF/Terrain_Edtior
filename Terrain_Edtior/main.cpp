@@ -47,22 +47,12 @@ const char* G_TERRAIN_FS_PATH = "./Assets/Shaders/Terrain_FS.glsl";
 const char* G_GLSL_VERSION = "#version 330";
 
 //PerlinNoise params
-int g_perlinWidth = 512;
-int g_perlinHeight = 512;
-int g_perlinSeed = 0;
-const int G_N_CHANNELS = 4;
-float g_noiseScale = 500.0f;
-int g_octaves = 4;
-float g_persistence = 0.5f;
-float g_lacunarity = 2.0f;
-glm::vec2 g_offset = {0.0f, 0.0f};
 const char* G_PERLIN_NOISE_FILENAME = "./Assets/Textures/Noise/perlin_noise.png";
 float g_noiseGenerationCooldown = 0.5f;
 float g_lastNoiseGeneratedTime = 0.0f;
 bool g_isNoiseGenerationNeeded = false;
 bool g_isNoiseGenerated = false;
-PerlinNoise noise(g_perlinWidth, g_perlinHeight, g_perlinSeed, G_N_CHANNELS,  g_noiseScale, g_octaves, g_persistence, g_lacunarity, g_offset);
-
+PerlinNoise noise;
 
 float g_mixVal = 0.5f;
 float g_numberOfTiles = Terrain::SIZE;
@@ -74,6 +64,7 @@ float g_nearPlane = 0.1f;
 float g_farPlane = 1000.0f;
 float g_deltaTime = 0.0f;
 float g_lastFrame = 0.0f;
+bool g_isCursorEnabled = false;
 
 Joystick mainJ(0);
 
@@ -198,14 +189,6 @@ int main()
 		}
 		else if (g_isNoiseGenerationNeeded)
 		{
-			noise.width = g_perlinWidth;
-			noise.height = g_perlinHeight;
-			noise.seed = g_perlinSeed;
-			noise.scale = g_noiseScale;
-			noise.octaves = g_octaves;
-			noise.persistence = g_persistence;
-			noise.lacunarity = g_lacunarity;
-			noise.offset = g_offset;
 			noise.generateNoise();
 			test.generate();
 			test.setFilters(GL_LINEAR);
@@ -218,21 +201,77 @@ int main()
 		
 		//Create UI window
 		if (g_isImGuiRenderNeeded) {
-			ImGui::Begin("Perlin Noise");
-			ImGui::SliderInt("Image width", &g_perlinWidth, 1, 512);
-			ImGui::SliderInt("Image height", &g_perlinHeight, 1, 512);
-			ImGui::SliderInt("Noise seed", &g_perlinSeed, 0, 255);
-			ImGui::SliderFloat("Scale", &g_noiseScale, 0.1f, 100.0f);
-			ImGui::SliderInt("Octaves", &g_octaves, 1, 8);
-			ImGui::SliderFloat("Persistence", &g_persistence, 0.0f, 1.0f);
-			ImGui::SliderFloat("Lacunarity", &g_lacunarity, 1.0f, 10.0f);
-			ImGui::SliderFloat("Offset X", &g_offset.x, 0.0f, 500.0f);
-			ImGui::SliderFloat("Offset Y", &g_offset.y, 0.0f, 500.0f);
-			ImGui::Checkbox("Generate Perlin Noise", &g_isNoiseGenerationNeeded);
-			if (g_isNoiseGenerated)
+
+			//Set ImGui window width/height to fit content
+			ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, FLT_MAX));
+
+			//Start creating ImGui window
+			ImGui::Begin("Terrain Editor");
+
+			if (ImGui::BeginTabBar("TabBar"))
 			{
-				ImGui::Image(test.textureId, ImVec2(test.getTextureWidth(), test.getTextureHeight()));
+				//Global Settings Tab
+				if (ImGui::BeginTabItem("Controls"))
+				{
+					ImGui::Text("Controls:                Keyboard/Mouse     | Joystick");
+					//Keyboard Controls
+					ImGui::Text("Keyboard controls");
+					ImGui::Text("Exit Program:            ESC                | Circle  ");
+					ImGui::Text("Move Forward:            W                  |         ");
+					ImGui::Text("Move Backwards:          S                  |         ");
+					ImGui::Text("Move Left:               A                  |         ");
+					ImGui::Text("Move Right:              D                  |         ");
+					ImGui::Text("Move Up:                 Space              |         ");
+					ImGui::Text("Move Down:               Left Shift         |         ");
+					ImGui::Text("Close/Open ImGui Window: Q                  |         ");
+					ImGui::Text("Hide/Show Mouse Cursor:  H                  |         ");
+					//Mouse Controls
+					ImGui::Text("Mouse Controls");
+					ImGui::Text("Look Up:                 Mouse Up           |         ");
+					ImGui::Text("Look Down:               Mouse Down         |         ");
+					ImGui::Text("Look Left:               Mouse Left         |         ");
+					ImGui::Text("Look Right:              Mouse Right        |         ");
+					ImGui::Text("Zoom in:                 Mouse Wheel Up     |         ");
+					ImGui::Text("Zoom out:                Mouse Wheel Down   |         ");
+					ImGui::EndTabItem();
+				}
+
+				//Mouse Settings Tab
+				if (ImGui::BeginTabItem("Mouse Settings"))
+				{
+					ImGui::SliderFloat("Mouse Sensitivity", &g_camera.mouseSensitivity, 0.1f, 1.0f);
+					ImGui::SliderFloat("Mouse Wheel Sensitivity", &g_camera.wheelSensitivity, 1.0f, 10.0f);
+					ImGui::SliderFloat("Movement Speed", &g_camera.speed, 1.0f, 15.0f);
+					ImGui::Checkbox("Invert X-axis", &g_camera.invertX);
+					ImGui::Checkbox("Invert Y-axis", &g_camera.invertY);
+					ImGui::EndTabItem();
+				}
+
+				//Perlin Noise Tab
+				if (ImGui::BeginTabItem("Perlin Noise"))
+				{
+					ImGui::SliderInt("Image width", &noise.width, 1, 512);
+					ImGui::SliderInt("Image height", &noise.height, 1, 512);
+					ImGui::SliderInt("Noise seed", &noise.seed, 0, 255);
+					ImGui::SliderFloat("Scale", &noise.scale, 0.1f, 100.0f);
+					ImGui::SliderInt("Octaves", &noise.octaves, 1, 8);
+					ImGui::SliderFloat("Persistence", &noise.persistence, 0.0f, 1.0f);
+					ImGui::SliderFloat("Lacunarity", &noise.lacunarity, 1.0f, 10.0f);
+					ImGui::SliderFloat("Offset X", &noise.offset.x, 0.0f, 500.0f);
+					ImGui::SliderFloat("Offset Y", &noise.offset.y, 0.0f, 500.0f);
+					ImGui::Checkbox("Generate Perlin Noise", &g_isNoiseGenerationNeeded);
+					if (g_isNoiseGenerated)
+					{
+						ImGui::Image(test.textureId, ImVec2(test.getTextureWidth(), test.getTextureHeight()));
+					}
+					ImGui::EndTabItem();
+				}
+
+				// End the tab bar
+				ImGui::EndTabBar();
 			}
+
+			//End window creation
 			ImGui::End();
 		}
 
@@ -291,13 +330,19 @@ void processInput(double dt)
 		{
 			glfwSetInputMode(screen.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
-		
+		g_isCursorEnabled = !g_isCursorEnabled;
 	}
 
 	//Enable ImGui rendering
 	if (Keyboard::keyWentDown(GLFW_KEY_Q))
 	{
 		g_isImGuiRenderNeeded = !g_isImGuiRenderNeeded;
+	}
+
+	//Can't move camera while ImGui opened
+	if (g_isImGuiRenderNeeded)
+	{
+		return;
 	}
 
 	//Move camera
@@ -326,9 +371,14 @@ void processInput(double dt)
 		g_camera.updateCameraPos(CameraDirection::DOWN, dt);
 	}
 
+	if (g_isCursorEnabled)
+	{
+		return;
+	}
+
 	//Change Yaw and Pitch of a camera
 	double dx = Mouse::getDX(), dy = Mouse::getDY();
-	if ((dx != 0 || dy != 0) && Mouse::button(GLFW_MOUSE_BUTTON_LEFT))
+	if (dx != 0 || dy != 0)
 	{
 		g_camera.updateCameraDirection(dx, dy);
 	}
@@ -338,11 +388,5 @@ void processInput(double dt)
 	if(scrollDY != 0)
 	{
 		g_camera.updateCameraZoom(scrollDY);
-	}
-
-	//Change camera movement relative to world axes or camera axes
-	if (Keyboard::keyWentDown(GLFW_KEY_Z))
-	{
-		g_camera.shouldMoveRelativeToWorldYAxis = !g_camera.shouldMoveRelativeToWorldYAxis;
 	}
 }

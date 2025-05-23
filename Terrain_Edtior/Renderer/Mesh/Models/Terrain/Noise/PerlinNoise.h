@@ -25,7 +25,6 @@ public:
     std::vector<unsigned char> image;
 
     PerlinNoise();
-    PerlinNoise(int width, int height, int seed, int nChannels, float scale, int octaves, float persistence, float lacunarity, glm::vec2 offset);
 
     void generateNoise();
 

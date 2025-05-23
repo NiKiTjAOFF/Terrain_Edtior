@@ -4,10 +4,13 @@ Camera::Camera(glm::vec3 position)
 	: cameraPos(position),
 	worldY(glm::vec3(0.0f, 1.0f, 0.0f)),
 	yaw(0.0f),
+	invertX(false),
+	invertY(false),
 	pitch(0.0f),
 	speed(10.0f),
 	zoom(45.0f),
-	shouldMoveRelativeToWorldYAxis(true),
+	mouseSensitivity(0.5f),
+	wheelSensitivity(1.0f),
 	cameraFront(glm::vec3(0.0f, 0.0f, 0.0f))
 {
 	updateCameraVectors();
@@ -15,8 +18,8 @@ Camera::Camera(glm::vec3 position)
 
 void Camera::updateCameraDirection(double dx, double dy)
 {
-	yaw += dx;
-	pitch += dy;
+	yaw += dx * mouseSensitivity * (invertX ? -1 : 1);
+	pitch += dy * mouseSensitivity * (invertY ? -1 : 1);
 
 	if (pitch > 89.0f)
 	{
@@ -63,15 +66,12 @@ void Camera::updateCameraPos(CameraDirection direction, double dt)
 }
 void Camera::updateCameraZoom(double dy)
 {
-	if (zoom >= 1.0f && zoom <= 45.0f)
-	{
-		zoom -= dy;
-	}
-	else if (zoom < 1.0f)
+	zoom -= dy * wheelSensitivity;
+	if (zoom < 1.0f)
 	{
 		zoom = 1.0f;
 	}
-	else // > 45.0f
+	else if (zoom > 45.0f)
 	{
 		zoom = 45.0f;
 	}

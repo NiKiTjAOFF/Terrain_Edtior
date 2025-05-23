@@ -1,13 +1,8 @@
 #include "PerlinNoise.h"
 
-PerlinNoise::PerlinNoise() {};
-PerlinNoise::PerlinNoise
-(
-	int width, int height, int seed, int nChannels, float scale,
-	int octaves, float persistence, float lacunarity, glm::vec2 offset
-)
-	:width(width), height(height), seed(seed), nChannels(nChannels), scale(scale),
-	octaves(octaves), persistence(persistence), lacunarity(lacunarity), offset(offset)
+PerlinNoise::PerlinNoise()
+	: width(512), height(512), seed(0), nChannels(4), scale(20.0f),
+	octaves(1), persistence(0.5f), lacunarity(1.0f), offset(glm::vec2(0.0f, 0.0f))
 {}
 
 void PerlinNoise::generateNoise()

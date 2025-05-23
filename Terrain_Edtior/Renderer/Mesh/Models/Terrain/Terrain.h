@@ -15,7 +15,7 @@ class Terrain : public Mesh
 	float z;
 
 public:
-	static const unsigned int SIZE = 800;
+	static const unsigned int SIZE = 5;
 	std::vector<Mesh> meshes;
 
 	Terrain(unsigned int gridX, unsigned int gridZ);
