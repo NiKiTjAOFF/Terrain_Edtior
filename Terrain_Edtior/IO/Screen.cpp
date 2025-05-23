@@ -17,6 +17,11 @@ void Screen::framebufferSizeCallback(GLFWwindow* window, int width, int height)
 	s_height = height;
 }
 
+GLFWwindow* Screen::getWindow()
+{
+	return window;
+}
+
 Screen::Screen()
 	: window(nullptr) {}
 

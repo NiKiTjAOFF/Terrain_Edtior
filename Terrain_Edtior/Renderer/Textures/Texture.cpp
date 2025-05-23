@@ -4,6 +4,15 @@
 
 int Texture::currentId = 0;
 
+int Texture::getTextureWidth()
+{
+	return width;
+}
+int Texture::getTextureHeight()
+{
+	return height;
+}
+
 Texture::Texture() {}
 
 Texture::Texture(const char* path, const char* name, bool defaultParams)
@@ -24,7 +33,7 @@ void Texture::generate()
 	glGenTextures(1, &textureId);
 	glBindTexture(GL_TEXTURE_2D, textureId);
 }
-void Texture::load(bool flip )
+void Texture::load(bool flip)
 {
 	//Image loading
 	stbi_set_flip_vertically_on_load(flip);
@@ -56,6 +65,29 @@ void Texture::load(bool flip )
 	}
 
 	stbi_image_free(data);
+}
+
+void Texture::load(unsigned char* image, int width, int height, int nChannels)
+{
+	this->path = "";
+	this->width = width;
+	this->height = height;
+	this->nChannels = nChannels;
+
+	GLenum colorMode = GL_RGB;
+	if (nChannels == 1)
+	{
+		//Only red image
+		colorMode = GL_RED;
+	}
+	else if (nChannels == 4)
+	{
+		//RGB + alpha channel (png for example)
+		colorMode = GL_RGBA;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, colorMode, width, height, 0, colorMode, GL_UNSIGNED_BYTE, image);
 }
 
 void Texture::setFilters(GLenum all)

@@ -17,8 +17,6 @@ public:
 	static bool keyChanged(int key);
 	static bool keyWentUp(int key);
 	static bool keyWentDown(int key);
-
-
 };
 
 #endif

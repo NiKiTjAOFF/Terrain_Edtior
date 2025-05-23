@@ -14,12 +14,18 @@ class Texture
 	int width;
 	int height;
 	int nChannels;
+	
 public:
+
+	int getTextureWidth();
+	int getTextureHeight();
+
 	Texture();
 	Texture(const char* path, const char* name, bool defaultParams = true);
 
 	void generate();
 	void load(bool flip = true);
+	void load(unsigned char* image, int width, int height, int nChannels);
 
 	void setFilters(GLenum all);
 	void setFilters(GLenum mag, GLenum min);

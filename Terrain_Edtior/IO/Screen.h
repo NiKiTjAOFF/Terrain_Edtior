@@ -16,6 +16,8 @@ public:
 
 	static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
+	GLFWwindow* getWindow();
+
 	Screen();
 
 	bool init();

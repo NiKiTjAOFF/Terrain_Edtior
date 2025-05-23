@@ -39,6 +39,7 @@ public:
 	void setInt(const std::string& name, int val);
 	void setFloat(const std::string& name, float val);
 	void set4Float(const std::string& name, float v1, float v2, float v3, float v4);
+	void setVec2(const std::string& name, glm::vec2 val);
 	void setMat4(const std::string& name, glm::mat4 val);
 };
 

@@ -10,28 +10,30 @@
 #include "../Shaders/Shader.h"
 #include "../Textures/Texture.h"
 
-struct Vertex
-{
-	glm::vec3 position;
-	glm::vec2 textureCoordinates;
-
-	static std::vector<Vertex> genList(float* vertices, int numberOfVertices);
-};
-
 class Mesh
 {
-	unsigned int VBO, EBO;
+	std::vector<unsigned int> VBOs;
+	unsigned int EBO;
 
-	void setup();
 public:
-	std::vector<Vertex> vertices;
-	std::vector<unsigned int> indices;
 	unsigned int VAO;
+	std::vector<unsigned int> indices;
+
+	std::vector<float> positions;
+	std::vector<float> normals;
+	std::vector<float> textureCoordinates;
 
 	std::vector<Texture> textures;
 
 	Mesh();
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+	Mesh(
+		std::vector<float> positions, std::vector<float> normals,
+		std::vector<float> textureCoordinates, std::vector<unsigned int> indices,
+		std::vector<Texture> textures
+	);
+
+	void setup();
+	void addAttribute(int id, int attribSize, std::vector<float> data);
 	
 	void render(Shader shader);
 

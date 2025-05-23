@@ -25,12 +25,16 @@ public:
 	glm::vec3 cameraUp;
 	glm::vec3 cameraRight;
 
-	glm::vec3 worldUp;
+	glm::vec3 worldY;
 
 	float yaw;
+	bool invertX;
 	float pitch;
+	bool invertY;
 	float speed;
 	float zoom;// -> FOV
+	float mouseSensitivity;
+	float wheelSensitivity;
 
 	Camera(glm::vec3 position);
 
