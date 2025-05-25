@@ -36,6 +36,7 @@ public:
 	void activate(int id);
 	void bind();
 	void set(int id);
+	void cleanup();
 
 	//Texture object
 	int objectId;//object id essentially

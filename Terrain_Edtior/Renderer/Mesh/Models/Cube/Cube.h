@@ -2,6 +2,7 @@
 #define CUBE_H
 
 #include "../../Mesh.h"
+#include "../../../Materials/Material.h"
 
 class Cube : public Mesh
 {
@@ -12,9 +13,10 @@ class Cube : public Mesh
 	const char* SMILEY_FACE_TEXTURE_NAME = "Smiley_Face";
 
 public:
+	Material material;
 	std::vector<Mesh> meshes;
 	
-	Cube();
+	Cube(Material material);
 	
 	void init();
 

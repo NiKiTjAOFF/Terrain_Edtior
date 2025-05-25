@@ -129,3 +129,8 @@ void Texture::set(int id)
 	activate(id);
 	bind();
 }
+
+void Texture::cleanup()
+{
+	glDeleteTextures(1, &textureId);
+}
