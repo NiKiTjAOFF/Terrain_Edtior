@@ -67,6 +67,7 @@ float g_deltaTime = 0.0f;
 float g_lastFrame = 0.0f;
 bool g_isCursorEnabled = false;
 bool g_isWiredModeEnabled = false;
+bool g_isPointModeEnabled = false;
 
 Joystick mainJ(0);
 
@@ -184,14 +185,28 @@ int main()
 			terrainShader.activate();
 			terrainShader.setMat4("view", view);
 			terrainShader.setMat4("projection", projection);
+			//Terrain Params
 			terrainShader.setFloat("textureRepeat", terrain.textureRepeat);
 			terrainShader.setFloat("maxHeight", terrain.maxHeight);
 			terrainShader.setFloat("size", terrain.size);
 			//Fragment Shader
-			terrainShader.setFloat("sandThreshold", terrain.sandThreshold);
-			terrainShader.setFloat("grassThreshold", terrain.grassThreshold);
-			terrainShader.setFloat("rockThreshold", terrain.rockThreshold);
-
+			//Sand
+			terrainShader.setFloat("sandHeight", terrain.sandHeight);
+			terrainShader.set4Float("sandColor", terrain.sandColor.x, terrain.sandColor.y, terrain.sandColor.z, terrain.sandColor.w);
+			//Grass
+			terrainShader.setFloat("grassHeight", terrain.grassHeight);
+			terrainShader.set4Float("grassColor", terrain.grassColor.x, terrain.grassColor.y, terrain.grassColor.z, terrain.grassColor.w);
+			//Rock
+			terrainShader.setFloat("rockHeight", terrain.rockHeight);
+			terrainShader.set4Float("rockColor", terrain.rockColor.x, terrain.rockColor.y, terrain.rockColor.z, terrain.rockColor.w);
+			//Ice
+			terrainShader.setFloat("iceHeight", terrain.iceHeight);
+			terrainShader.set4Float("iceColor", terrain.iceColor.x, terrain.iceColor.y, terrain.iceColor.z, terrain.iceColor.w);
+			//Misc
+			terrainShader.setInt("colorType", terrain.colorType);
+			terrainShader.setInt("factorCalculationMethod", terrain.calculationMethod);
+			terrainShader.setFloat("colorBlending", terrain.colorBlending);
+			
 			terrain.render(terrainShader);
 		}
 
@@ -229,29 +244,30 @@ int main()
 				//Global Settings Tab
 				if (ImGui::BeginTabItem("Controls"))
 				{
-					ImGui::Text("Controls:                   Keyboard/Mouse     | Joystick");
-					//Keyboard Controls					     
-					ImGui::Text("---------------------------------------------------------");
-					ImGui::Text("Keyboard controls");	     
-					ImGui::Text("Exit Program:               ESC                | Circle  ");
-					ImGui::Text("Move Forward:               W                  |         ");
-					ImGui::Text("Move Backwards:             S                  |         ");
-					ImGui::Text("Move Left:                  A                  |         ");
-					ImGui::Text("Move Right:                 D                  |         ");
-					ImGui::Text("Move Up:                    Space              |         ");
-					ImGui::Text("Move Down:                  Left Shift         |         ");
-					ImGui::Text("Close/Open ImGui Window:    Q                  |         ");
-					ImGui::Text("Hide/Show Mouse Cursor:     H                  |         ");
-					ImGui::Text("Enable/Disable wired mode:  M                  |         ");
-					//Mouse Controls
-					ImGui::Text("---------------------------------------------------------");
-					ImGui::Text("Mouse Controls");
-					ImGui::Text("Look Up:                    Mouse Up           |         ");
-					ImGui::Text("Look Down:                  Mouse Down         |         ");
-					ImGui::Text("Look Left:                  Mouse Left         |         ");
-					ImGui::Text("Look Right:                 Mouse Right        |         ");
-					ImGui::Text("Zoom in:                    Mouse Wheel Up     |         ");
-					ImGui::Text("Zoom out:                   Mouse Wheel Down   |         ");
+					ImGui::Text("Controls:                    Keyboard/Mouse     | Joystick");
+					//Keyboard Controls						  
+					ImGui::NewLine();						  
+					ImGui::Text("Keyboard controls");	      
+					ImGui::Text("Exit Program:                ESC                | Circle  ");
+					ImGui::Text("Move Forward:                W                  |         ");
+					ImGui::Text("Move Backwards:              S                  |         ");
+					ImGui::Text("Move Left:                   A                  |         ");
+					ImGui::Text("Move Right:                  D                  |         ");
+					ImGui::Text("Move Up:                     Space              |         ");
+					ImGui::Text("Move Down:                   Left Shift         |         ");
+					ImGui::Text("Close/Open ImGui Window:     Q                  |         ");
+					ImGui::Text("Hide/Show Mouse Cursor:      H                  |         ");
+					ImGui::Text("Enable/Disable wired mode:   M                  |         ");
+					ImGui::Text("Enable/Disable points mode:  O                  |         ");
+					//Mouse Controls						  
+					ImGui::NewLine();						  
+					ImGui::Text("Mouse Controls");			  
+					ImGui::Text("Look Up:                     Mouse Up           |         ");
+					ImGui::Text("Look Down:                   Mouse Down         |         ");
+					ImGui::Text("Look Left:                   Mouse Left         |         ");
+					ImGui::Text("Look Right:                  Mouse Right        |         ");
+					ImGui::Text("Zoom in:                     Mouse Wheel Up     |         ");
+					ImGui::Text("Zoom out:                    Mouse Wheel Down   |         ");
 					ImGui::EndTabItem();
 				}
 
@@ -262,6 +278,7 @@ int main()
 					ImGui::SliderFloat("Mouse Wheel Sensitivity", &g_camera.wheelSensitivity, 1.0f, 10.0f);
 					ImGui::SliderFloat("Movement Speed", &g_camera.speed, 1.0f, 100.0f);
 					ImGui::Checkbox("Invert X-axis", &g_camera.invertX);
+					ImGui::SameLine();
 					ImGui::Checkbox("Invert Y-axis", &g_camera.invertY);
 					ImGui::EndTabItem();
 				}
@@ -282,7 +299,8 @@ int main()
 					ImGui::Checkbox("Generate Perlin Noise", &g_isTerrainGenerationNeeded);
 					if (g_isTerrainGenerated)
 					{
-						ImGui::Image(noiseTexture.textureId, ImVec2(noiseTexture.getTextureWidth(), noiseTexture.getTextureHeight()));
+						ImVec2 imageSize(noiseTexture.getTextureWidth() / 2, noiseTexture.getTextureHeight() / 2);
+						ImGui::Image(noiseTexture.textureId, imageSize);
 					}
 					ImGui::EndTabItem();
 				}
@@ -290,12 +308,75 @@ int main()
 				//Terrain Tab
 				if (ImGui::BeginTabItem("Terrain"))
 				{
-					ImGui::SliderFloat("Terrain Size X", &terrain.size, 0.01f, 1.0f);
-					ImGui::SliderFloat("Texture Repeat X", &terrain.textureRepeat, 1.0f, 50.0f);
+					const char* colorType[] = { "Only Textures", "Only Colors", "Texture + Color" };
+					ImGui::Combo("Color Type", &terrain.colorType, colorType, IM_ARRAYSIZE(colorType));
+					
+					//Terrain Params
+					ImGui::SliderFloat("Terrain Size", &terrain.size, 0.01f, 1.0f);
+					if (terrain.colorType == ColorRendering::TEXTURE || terrain.colorType == ColorRendering::TEXTURE_COLOR)
+					{
+						ImGui::SliderFloat("Texture Repeat", &terrain.textureRepeat, 1.0f, 100.0f);
+					}
 					ImGui::SliderFloat("Terrain Max Height", &terrain.maxHeight, 0.1f, 100.0f);
-					//ImGui::SliderFloat("Sand Threshold", &terrain.sandThreshold, 0.0f, 1.0f);
-					//ImGui::SliderFloat("Grass Threshold", &terrain.grassThreshold, terrain.sandThreshold, 1.0f);
-					//ImGui::SliderFloat("Rock Threshold", &terrain.rockThreshold, terrain.grassThreshold, 1.0f);
+					
+					//Sand Params
+					ImGui::NewLine();
+					ImGui::Text("Sand");
+					ImGui::SliderFloat("Sand Start Height", &terrain.sandHeight, 0.0f, 1.0f);
+					if (terrain.colorType == ColorRendering::COLOR || terrain.colorType == ColorRendering::TEXTURE_COLOR)
+					{
+						ImGui::ColorEdit4("Sand Color", (float*)&terrain.sandColor);
+					}
+					//Grass Params
+					ImGui::NewLine();
+					ImGui::Text("Grass");
+					ImGui::SliderFloat("Grass Start Height", &terrain.grassHeight, 0.0f + terrain.sandHeight, 1.0f);
+					if (terrain.colorType == ColorRendering::COLOR || terrain.colorType == ColorRendering::TEXTURE_COLOR)
+					{
+						ImGui::ColorEdit4("Grass Color", (float*)&terrain.grassColor);
+					}
+					//Rock Params
+					ImGui::NewLine();
+					ImGui::Text("Rock");
+					ImGui::SliderFloat("Rock Start Height", &terrain.rockHeight, 0.0f + terrain.grassHeight, 1.0f);
+					if (terrain.colorType == ColorRendering::COLOR || terrain.colorType == ColorRendering::TEXTURE_COLOR)
+					{
+						ImGui::ColorEdit4("Rock Color", (float*)&terrain.rockColor);
+					}
+					//Ice Params
+					ImGui::NewLine();
+					ImGui::Text("Ice");
+					ImGui::SliderFloat("Ice Start Height", &terrain.iceHeight, 0.0f + terrain.rockHeight, 1.0f);
+					if (terrain.colorType == ColorRendering::COLOR || terrain.colorType == ColorRendering::TEXTURE_COLOR)
+					{
+						ImGui::ColorEdit4("Ice Color", (float*)&terrain.iceColor);
+					}
+					ImGui::NewLine();
+
+					//Terrain Misc
+					if (terrain.colorType == ColorRendering::TEXTURE_COLOR)
+					{
+						ImGui::SliderFloat("Texture and Color Blending", &terrain.colorBlending, 0.0f, 1.0f);
+					}
+
+					const char* calculationMethod[] = { "Mix", "Smoothstep" };
+					ImGui::Combo("Calculation Method", &terrain.calculationMethod, calculationMethod, IM_ARRAYSIZE(calculationMethod));
+
+					if (ImGui::Button("Nullify Height Params"))
+					{
+						terrain.sandHeight = 0.0f;
+						terrain.grassHeight = 0.0f;
+						terrain.rockHeight = 0.0f;
+						terrain.iceHeight = 0.0f;
+					}
+
+					ImGui::EndTabItem();
+				}
+
+				//Global Settings Tab
+				if (ImGui::BeginTabItem("Global Settings"))
+				{
+					ImGui::ColorEdit4("Clear color", (float*)&screen.clearColor);
 					ImGui::EndTabItem();
 				}
 
@@ -374,7 +455,21 @@ void processInput(double dt)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
+		g_isPointModeEnabled = false;
 		g_isWiredModeEnabled = !g_isWiredModeEnabled;
+	}
+
+	//Switch between points and normal mode
+	if (Keyboard::keyWentDown(GLFW_KEY_P)) {
+		if (!g_isPointModeEnabled) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		}
+		else
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		g_isPointModeEnabled = !g_isPointModeEnabled;
+		g_isWiredModeEnabled = false;
 	}
 
 	//Enable ImGui rendering

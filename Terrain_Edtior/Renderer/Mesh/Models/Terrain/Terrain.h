@@ -3,9 +3,16 @@
 
 #include "../../Mesh.h"
 
+enum ColorRendering
+{
+	TEXTURE = 0,
+	COLOR,
+	TEXTURE_COLOR
+};
+
 class Terrain : public Mesh
 {
-	const char* SAND_TEXTURE_PATH = "./Assets/Textures/sand.png";
+	const char* SAND_TEXTURE_PATH = "./Assets/Textures/sand.jpg";
 	const char* SAND_TEXTURE_NAME = "sand";
 
 	const char* GRASS_TEXTURE_PATH = "./Assets/Textures/grass.jpg";
@@ -14,18 +21,32 @@ class Terrain : public Mesh
 	const char* ROCK_TEXTURE_PATH = "./Assets/Textures/rock.jpg";
 	const char* ROCK_TEXTURE_NAME = "rock";
 
-	const char* SNOW_TEXTURE_PATH = "./Assets/Textures/snow.jpg";
-	const char* SNOW_TEXTURE_NAME = "snow";
+	const char* ICE_TEXTURE_PATH = "./Assets/Textures/ice.jpg";
+	const char* ICE_TEXTURE_NAME = "ice";
 
 	bool checkBounds(int index, int size);
 public:
 	float size;
 	float textureRepeat;
 	float maxHeight;
-	float sandThreshold;
-	float grassThreshold;
-	float rockThreshold;
-	float snowThreshold;
+	
+	//Sand Params
+	float sandHeight;
+	ImVec4 sandColor;
+	//Grass Params
+	float grassHeight;
+	ImVec4 grassColor;
+	//Rock Params
+	float rockHeight;
+	ImVec4 rockColor;
+	//Ice Params
+	float iceHeight;
+	ImVec4 iceColor;
+
+
+	int colorType;
+	int calculationMethod;
+	float colorBlending;
 	std::vector<Mesh> meshes;
 
 	Terrain();

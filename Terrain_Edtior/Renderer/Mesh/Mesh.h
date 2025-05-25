@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include "../../imgui/imgui.h"
 
 #include "../Shaders/Shader.h"
 #include "../Textures/Texture.h"

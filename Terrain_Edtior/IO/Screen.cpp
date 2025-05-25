@@ -6,7 +6,6 @@
 unsigned int Screen::s_width = 640;
 unsigned int Screen::s_height = 480;
 const char* Screen::s_windowTitle = "Terrain Editor";
-const glm::vec4 Screen::s_peachColor = { 1.0f, 0.898f, 0.706f, 1.0f };
 
 void Screen::framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -23,7 +22,8 @@ GLFWwindow* Screen::getWindow()
 }
 
 Screen::Screen()
-	: window(nullptr) {}
+	: window(nullptr), clearColor(glm::vec4(1.0f, 0.898f, 0.706f, 1.0f))
+{}
 
 bool Screen::init()
 {
@@ -60,7 +60,7 @@ void Screen::setParameters()
 void Screen::update()
 {
 	//Set the flush color and flush back buffer and depth buffer
-	glClearColor(s_peachColor.x, s_peachColor.y, s_peachColor.z, s_peachColor.a);
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

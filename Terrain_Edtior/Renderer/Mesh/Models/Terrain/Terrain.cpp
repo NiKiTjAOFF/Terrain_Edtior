@@ -1,8 +1,16 @@
 #include "Terrain.h"
 
-Terrain::Terrain() 
+Terrain::Terrain()
 	:size(0.1f), textureRepeat(1.0f), maxHeight(1.0f),
-	sandThreshold(0.2f), grassThreshold(0.3f), rockThreshold(0.9f)
+	//Sand
+	sandHeight(0.1f), sandColor(ImVec4(0.910f, 0.704f, 0.0273f, 1.0f)),
+	//Grass
+	grassHeight(0.2f), grassColor(ImVec4(0.341f, 0.810f, 0.316f, 1.0f)),
+	//Rock
+	rockHeight(0.25f), rockColor(ImVec4(0.680f, 0.503f, 0.645f, 1.0f)),
+	//Ice
+	iceHeight(0.9f), iceColor(ImVec4(0.164f, 0.579f, 0.820f, 1.0f)),
+	colorType(1), calculationMethod(1), colorBlending(0.5f)
 {}
 
 bool Terrain::checkBounds(int index, int size)
@@ -36,8 +44,8 @@ void Terrain::init(float* heightMap, int width, int height)
 			normals[pointer * 3 + 1] = 1.0f;//y-axis
 			normals[pointer * 3 + 2] = 0.0f;//z-axis
 			//Texture coordinates
-			textureCoordinates[pointer * 2] = (float)x / (float)width;//x-axis
-			textureCoordinates[pointer * 2 + 1] = (float) z / (float)height;//y-axis
+			textureCoordinates[pointer * 2] = (float)x / (float)(width - 1);//x-axis
+			textureCoordinates[pointer * 2 + 1] = (float) z / (float)(height - 1);//y-axis
 			pointer++;
 		}
 	}
@@ -89,7 +97,7 @@ void Terrain::init(float* heightMap, int width, int height)
 	Texture sand(SAND_TEXTURE_PATH, SAND_TEXTURE_NAME);
 	Texture grass(GRASS_TEXTURE_PATH, GRASS_TEXTURE_NAME);
 	Texture rock(ROCK_TEXTURE_PATH, ROCK_TEXTURE_NAME);
-	Texture snow(SNOW_TEXTURE_PATH, SNOW_TEXTURE_NAME);
+	Texture snow(ICE_TEXTURE_PATH, ICE_TEXTURE_NAME);
 	sand.load();
 	grass.load();
 	rock.load();
