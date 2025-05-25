@@ -12,7 +12,7 @@ public:
 	static unsigned int s_width;
 	static unsigned int s_height;
 	static const char* s_windowTitle;
-	static const glm::vec4 s_peachColor;
+	glm::vec4 clearColor;
 
 	static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 

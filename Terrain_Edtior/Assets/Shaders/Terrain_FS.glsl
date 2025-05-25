@@ -4,64 +4,160 @@ out vec4 FragColor;
 in vec2 texCoord;
 in float height;
 
+#define TEXTURE 0
+#define COLOR 1
+#define TEXTURE_COLOR 2
+
+#define MIX 0
+#define SMOOTHSTEP 1
+
+//Sand
 uniform sampler2D sand;
+uniform vec4 sandColor;
+uniform float sandHeight;
+//Grass
 uniform sampler2D grass;
+uniform vec4 grassColor;
+uniform float grassHeight;
+//Rock
 uniform sampler2D rock;
-uniform sampler2D snow;
+uniform vec4 rockColor;
+uniform float rockHeight;
+//Ice
+uniform sampler2D ice;
+uniform vec4 iceColor;
+uniform float iceHeight;
 
-//uniform float lowerBound;
-//uniform float upperBound;
 
-uniform float sandThreshold;
-uniform float grassThreshold;
-uniform float rockThreshold;
+uniform int colorType;
+uniform int factorCalculationMethod;
+uniform float colorBlending;
+
+vec4 mixTextures(sampler2D tex1, sampler2D tex2, float tex1Height, float tex2Height)
+{
+	vec4 tex1Color = texture(tex1, texCoord);
+	vec4 tex2Color = texture(tex2, texCoord);
+	float factor;
+
+	if(factorCalculationMethod == MIX)
+	{
+		float delta = tex2Height - tex1Height;
+		factor = (height - tex1Height) / delta;
+	}
+	else if (factorCalculationMethod == SMOOTHSTEP)
+	{
+		factor = smoothstep(tex1Height, tex2Height, height);
+	}
+	
+	return mix(tex1Color, tex2Color, factor);
+}
+
+vec4 mixColors(vec4 color1, vec4 color2, float color1Height, float color2Height)
+{
+	float factor;
+
+	if(factorCalculationMethod == MIX)
+	{
+		float delta = color2Height - color1Height;
+		factor = (height - color1Height) / delta;
+	}
+	else if (factorCalculationMethod == SMOOTHSTEP)
+	{
+		factor = smoothstep(color1Height, color2Height, height);
+	}
+	
+	return mix(color1, color2, factor);
+}
 
 void main ()
 {
-	/*vec4 textureColor;
-	float normalizedHeight = (height + 1.0f) / 2.0f;
-	if((height >= -1.0f && height < -0.1f) || (height >= 0.3 && height < 0.9f))
-	{
-		textureColor = texture(rock, texCoord);
-	}
-	else if(height >= -0.1f && height < 0.1f)
-	{
-		textureColor = mix(texture(sand, texCoord), texture(rock, texCoord), 0.2f);
-	}
-	else if (height >= 0.1f && height < 0.3f)
-	{
-		textureColor = mix(texture(grass, texCoord), texture(sand, texCoord), 0.3f);
-	}
-	else if (height >= 0.9f && height <= 1.0f)
-	{
-		textureColor = mix(texture(snow, texCoord), texture(snow, texCoord), 0.2f);
-	}
-	FragColor = vec4(normalizedHeight, normalizedHeight, normalizedHeight, 1.0f) * textureColor;*/
-
-    /*vec4 sandColor = texture(sand, texCoord);
-	vec4 grassColor = texture(grass, texCoord);
-	vec4 rockColor = texture(rock, texCoord);
-	vec4 snowColor = texture(snow, texCoord);
-	float t = smoothstep(lowerBound, upperBound, height);
-	FragColor = mix(sandColor, grassColor, t);*/
-
-	vec4 sandColor = texture(sand, texCoord);
-	vec4 grassColor = texture(grass, texCoord);
-	vec4 rockColor = texture(rock, texCoord);
-	vec4 snowColor = texture(snow, texCoord);
-
 	vec4 finalColor;
-	if(height >= 0.0f && height < 0.3f)
+
+	//Sand
+	if(height < sandHeight)
 	{
-		finalColor = mix(sandColor, grassColor, smoothstep(0.0f, 0.3f, height));
+		if(colorType == TEXTURE)
+		{
+			finalColor = texture(sand, texCoord);
+		}
+		else if (colorType == COLOR)
+		{
+			finalColor = sandColor;
+		}
+		else if (colorType == TEXTURE_COLOR)
+		{
+			finalColor = mix(texture(sand, texCoord), sandColor, colorBlending);
+		}
 	}
-	else if(height >= 0.3f && height < 0.6f)
+	//Sand - Grass
+	else if (height < grassHeight)
 	{
-		finalColor = mix(grassColor, rockColor, smoothstep(0.2f, 0.6f, height));
+		if(colorType == TEXTURE)
+		{
+			finalColor = mixTextures(sand, grass, sandHeight, grassHeight);
+		}
+		else if (colorType == COLOR)
+		{
+			finalColor = mixColors(sandColor, grassColor, sandHeight, grassHeight);
+		}
+		else if (colorType == TEXTURE_COLOR)
+		{
+			vec4 textureColor = mixTextures(sand, grass, sandHeight, grassHeight);
+			vec4 baseColor = mixColors(sandColor, grassColor, sandHeight, grassHeight);
+			finalColor = mix(textureColor, baseColor, colorBlending);
+		}
 	}
-	else if(height >= 0.6f && height < 1.0f)
+	//Grass - Rock
+	else if (height < rockHeight)
 	{
-		finalColor = mix(rockColor, snowColor, smoothstep(0.9f, 1.0f, height));
+		if(colorType == TEXTURE)
+		{
+			finalColor = mixTextures(grass, rock, grassHeight, rockHeight);
+		}
+		else if (colorType == COLOR)
+		{
+			finalColor = mixColors(grassColor, rockColor, grassHeight, rockHeight);
+		}
+		else if (colorType == TEXTURE_COLOR)
+		{
+			vec4 textureColor = mixTextures(grass, rock, grassHeight, rockHeight);
+			vec4 baseColor = mixColors(grassColor, rockColor, grassHeight, rockHeight);
+			finalColor = mix(textureColor, baseColor, colorBlending);
+		}
 	}
-    FragColor = finalColor;
+	//Rock - Ice
+	else if (height < iceHeight)
+	{
+		if(colorType == TEXTURE)
+		{
+			finalColor = mixTextures(rock, ice, rockHeight, iceHeight);
+		}
+		else if (colorType == COLOR)
+		{
+			finalColor = mixColors(rockColor, iceColor, rockHeight, iceHeight);
+		}
+		else if (colorType == TEXTURE_COLOR)
+		{
+			vec4 textureColor = mixTextures(rock, ice, rockHeight, iceHeight);
+			vec4 baseColor = mixColors(rockColor, iceColor, rockHeight, iceHeight);
+			finalColor = mix(textureColor, baseColor, colorBlending);
+		}
+	}
+	//Ice
+	else
+	{
+		if(colorType == TEXTURE)
+		{
+			finalColor = texture(ice, texCoord);
+		}
+		else if (colorType == COLOR)
+		{
+			finalColor = iceColor;
+		}
+		else if (colorType == TEXTURE_COLOR)
+		{
+			finalColor = mix(texture(ice, texCoord), iceColor, colorBlending);
+		}
+	}
+	FragColor = finalColor;
 }

@@ -21,4 +21,5 @@ void main()
 	texCoord = aTexCoord * textureRepeat;
 	normals = aNormals;
 	height = (aPos.y + 1.0f) / 2.0f;
+	//height = aPos.y;
 }
