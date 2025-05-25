@@ -166,8 +166,10 @@
     <ClCompile Include="Libs\glad.c" />
     <ClCompile Include="Libs\stb.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer\Materials\Material.cpp" />
     <ClCompile Include="Renderer\Mesh\Mesh.cpp" />
     <ClCompile Include="Renderer\Mesh\Models\Cube\Cube.cpp" />
+    <ClCompile Include="Renderer\Mesh\Models\Lamp\Lamp.cpp" />
     <ClCompile Include="Renderer\Mesh\Models\Terrain\Noise\PerlinNoise.cpp" />
     <ClCompile Include="Renderer\Mesh\Models\Terrain\Terrain.cpp" />
     <ClCompile Include="Renderer\Ray_Casting\MousePicker.cpp" />
@@ -179,6 +181,8 @@
     <None Include="Assets\Shaders\Cube_VS.glsl" />
     <None Include="Assets\Shaders\Terrain_FS.glsl" />
     <None Include="Assets\Shaders\Terrain_VS.glsl" />
+    <None Include="Lamp_FS.glsl" />
+    <None Include="Lamp_VS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h" />
@@ -195,8 +199,10 @@
     <ClInclude Include="IO\Keyboard.h" />
     <ClInclude Include="IO\Mouse.h" />
     <ClInclude Include="IO\Screen.h" />
+    <ClInclude Include="Renderer\Materials\Material.h" />
     <ClInclude Include="Renderer\Mesh\Mesh.h" />
     <ClInclude Include="Renderer\Mesh\Models\Cube\Cube.h" />
+    <ClInclude Include="Renderer\Mesh\Models\Lamp\Lamp.h" />
     <ClInclude Include="Renderer\Mesh\Models\Terrain\Noise\PerlinNoise.h" />
     <ClInclude Include="Renderer\Mesh\Models\Terrain\Terrain.h" />
     <ClInclude Include="Renderer\Ray_Casting\MousePicker.h" />

@@ -72,6 +72,6 @@ void Mesh::cleanup()
 
 	for (size_t i = 0; i < textures.size(); i++)
 	{
-		glDeleteTextures(1, &textures[i].textureId);
+		textures[i].cleanup();
 	}
 }

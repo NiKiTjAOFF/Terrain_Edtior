@@ -24,6 +24,7 @@
 #include "./Renderer/Mesh/Models/Cube/Cube.h"
 #include "./Renderer/Mesh/Models/Terrain/Terrain.h"
 #include "./Renderer/Mesh/Models/Terrain/Noise/PerlinNoise.h"
+#include "./Renderer/Mesh/Models/Lamp/Lamp.h"
 #include "./Renderer/Ray_Casting/MousePicker.h"
 #include "./IO/Keyboard.h"
 #include "./IO/Mouse.h"
@@ -44,6 +45,9 @@ const char* G_CUBE_FS_PATH = "./Assets/Shaders/Cube_FS.glsl";
 
 const char* G_TERRAIN_VS_PATH = "./Assets/Shaders/Terrain_VS.glsl";
 const char* G_TERRAIN_FS_PATH = "./Assets/Shaders/Terrain_FS.glsl";
+
+const char* G_LAMP_VS_PATH = "./Assets/Shaders/Lamp_VS.glsl";
+const char* G_LAMP_FS_PATH = "./Assets/Shaders/Lamp_FS.glsl";
 
 const char* G_GLSL_VERSION = "#version 330";
 
@@ -105,11 +109,14 @@ int main()
 	//Setting Up Shaders
 	Shader terrainShader(G_TERRAIN_VS_PATH, G_TERRAIN_FS_PATH);
 	Shader cubeShader(G_CUBE_VS_PATH, G_CUBE_FS_PATH);
+	Shader lampShader(G_LAMP_VS_PATH, G_LAMP_FS_PATH);
 
 	/*---------------------------------Preparing Data to Render---------------------------------*/
 	PerlinNoise noise;
 	Terrain terrain;
-	Cube cube;
+	Cube cube(Material::emerald);
+	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f));
+	lamp.pos = glm::vec3(10.0f);
 
 	Texture noiseTexture;
 	noiseTexture.generate();
@@ -167,9 +174,20 @@ int main()
 		view = g_camera.getViewMatrix();
 		projection = glm::perspective(glm::radians(g_camera.getZoom()), (float)screen.s_width / (float)screen.s_height, g_nearPlane, g_farPlane);
 
+		lampShader.activate();
+		lampShader.setMat4("view", view);
+		lampShader.setMat4("projection", projection);
+		lampShader.set3Float("lightColor", lamp.lightColor);
+		lamp.render(lampShader, glm::vec3(0.25f), 0.0f, glm::vec3(1.0f), lamp.pos);
+
 		cubeShader.activate();
 		cubeShader.setMat4("view", view);
 		cubeShader.setMat4("projection", projection);
+		cubeShader.set3Float("light.position", lamp.pos);
+		cubeShader.set3Float("viewPos", g_camera.cameraPos);
+		cubeShader.set3Float("light.ambient", lamp.ambient);
+		cubeShader.set3Float("light.diffuse", lamp.diffuse);
+		cubeShader.set3Float("light.specular", lamp.specular);
 
 		//TODO add object placing using mousePicker
 		//cube.render(cubeShader, glm::vec3(1.0f), 0.0f, glm::vec3(1.0f), MousePicker::update(projection, view));
@@ -403,8 +421,19 @@ int main()
 	ImGui::DestroyContext();
 
 	//OpenGL cleanup
+	//Objects
 	terrain.cleanup();
 	cube.cleanup();
+	lamp.cleanup();
+	
+	//Shaders
+	terrainShader.cleanup();
+	cube.cleanup();
+	lamp.cleanup();
+
+	//Textures
+	noiseTexture.cleanup();
+
 	glfwTerminate();
 	return 0;
 }

@@ -23,6 +23,9 @@ void PerlinNoise::generateNoise()
 	float halfWidth = width / 2.0f;
 	float halfHeight = height / 2.0f;
 
+	float min = std::numeric_limits<float>::max();
+	float max = std::numeric_limits<float>::lowest();
+
 	for (int y = 0; y < height; y++)
 	{
 		for (int x = 0; x < width; x++)
@@ -44,11 +47,28 @@ void PerlinNoise::generateNoise()
 				frequency *= lacunarity;
 			}
 
+			if (noiseHeight > max) {
+				max = noiseHeight;
+			}
+			if (noiseHeight < min)
+			{
+				min = noiseHeight;
+			}
 			int index = y * width + x;
 			heightMap[index] = noiseHeight;
+		}
+	}
+
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			int index = y * width + x;
+			float heightValue = (heightMap[index] - min) / (max - min);
+			heightMap[index] = heightValue * 2 - 1;
 			
 			index *= nChannels;
-			unsigned char color = (unsigned char)((noiseHeight + 1.0f) * 127.5f);
+			unsigned char color = (unsigned char)(heightValue * 255.0f);
 			image[index] = color;
 			image[index + 1] = color;
 			image[index + 2] = color;

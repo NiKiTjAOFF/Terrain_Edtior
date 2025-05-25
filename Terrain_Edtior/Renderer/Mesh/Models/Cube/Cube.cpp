@@ -1,6 +1,7 @@
 #include "Cube.h"
 
-Cube::Cube()
+Cube::Cube(Material material)
+	: material(material)
 {
 	init();
 }
@@ -104,6 +105,11 @@ void Cube::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation
 	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
 	model = glm::translate(model, pos);
 	shader.setMat4("model", model);
+	shader.setMat3("normalMatrix", glm::transpose(glm::inverse(model)));
+	shader.set3Float("material.ambient", material.ambient);
+	shader.set3Float("material.diffuse", material.diffuse);
+	shader.set3Float("material.specular", material.specular);
+	shader.setFloat("material.shininess", material.shininess);
 
 	for (Mesh mesh : meshes)
 	{
