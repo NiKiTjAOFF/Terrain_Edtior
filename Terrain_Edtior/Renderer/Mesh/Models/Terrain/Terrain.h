@@ -10,7 +10,7 @@ enum ColorRendering
 	TEXTURE_COLOR
 };
 
-class Terrain : public Mesh
+class Terrain
 {
 	const char* SAND_TEXTURE_PATH = "./Assets/Textures/sand.jpg";
 	const char* SAND_TEXTURE_NAME = "sand";
@@ -43,11 +43,10 @@ public:
 	float iceHeight;
 	ImVec4 iceColor;
 
-
+	bool isLightNeeded;
 	int colorType;
 	int calculationMethod;
-	float colorBlending;
-	std::vector<Mesh> meshes;
+	Mesh mesh;
 
 	Terrain();
 

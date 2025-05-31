@@ -10,7 +10,7 @@ Terrain::Terrain()
 	rockHeight(0.25f), rockColor(ImVec4(0.680f, 0.503f, 0.645f, 1.0f)),
 	//Ice
 	iceHeight(0.9f), iceColor(ImVec4(0.164f, 0.579f, 0.820f, 1.0f)),
-	colorType(1), calculationMethod(1), colorBlending(0.5f)
+	isLightNeeded(true), colorType(1), calculationMethod(1)
 {}
 
 bool Terrain::checkBounds(int index, int size)
@@ -25,9 +25,8 @@ void Terrain::init(float* heightMap, int width, int height)
 	const int POSITIONS_SIZE = NUMBER_OF_VERTICES * 3;
 	const int NORMALS_SIZE = POSITIONS_SIZE;
 	const int TEXTURE_COORDINATES = NUMBER_OF_VERTICES * 2;
-	std::vector<float> positions, normals, textureCoordinates;
+	std::vector<float> positions, textureCoordinates;
 	positions.resize(POSITIONS_SIZE);
-	normals.resize(NORMALS_SIZE);
 	textureCoordinates.resize(TEXTURE_COORDINATES);
 	
 	int pointer = 0;
@@ -39,10 +38,6 @@ void Terrain::init(float* heightMap, int width, int height)
 			positions[pointer * 3] = x;//x-axis
 			positions[pointer * 3 + 1] = heightMap[z * width + x];//y-axis
 			positions[pointer * 3 + 2] = z;//z-axis
-			//Normals
-			normals[pointer * 3] = 0.0f;//x-axis
-			normals[pointer * 3 + 1] = 1.0f;//y-axis
-			normals[pointer * 3 + 2] = 0.0f;//z-axis
 			//Texture coordinates
 			textureCoordinates[pointer * 2] = (float)x / (float)(width - 1);//x-axis
 			textureCoordinates[pointer * 2 + 1] = (float) z / (float)(height - 1);//y-axis
@@ -50,36 +45,13 @@ void Terrain::init(float* heightMap, int width, int height)
 		}
 	}
 
-	//TODO: calculate terrain normals
-	//Counts normals according to neighboring height values
-	//pointer = 0;
-	//for (int z = 0; z < height; z++)
-	//{
-	//	for (int x = 0; x < width; x++)
-	//	{
-	//		int indexL = pointer * 3 + 1 - 3;//Left value
-	//		int indexR = pointer * 3 + 1 + 3;//Right value
-	//		int indexD = pointer * 3 + 1 - width;//Down value. Down: maybe + width
-	//		int indexU = pointer * 3 + 1 + width;//Up value. Up: maybe - width
-	//		float heightL = checkBounds(indexL, NORMALS_SIZE) ? positions[indexL] : 0.0f;
-	//		float heightR = checkBounds(indexR, NORMALS_SIZE) ? positions[indexR] : 0.0f;
-	//		float heightD = checkBounds(indexD, NORMALS_SIZE) ? positions[indexD] : 0.0f;
-	//		float heightU = checkBounds(indexU, NORMALS_SIZE) ? positions[indexU] : 0.0f;
-	//		glm::vec3 normal(glm::normalize(glm::vec3(heightL - heightR, 2.0f, heightD - heightU)));
-	//		//Normals
-	//		normals[pointer * 3] = normal.x;//x-axis
-	//		normals[pointer * 3 + 1] = normal.y;//y-axis
-	//		normals[pointer * 3 + 2] = normal.z;//z-axis
-	//		pointer++;
-	//	}
-	//}
-
+	//Indices initialization
 	std::vector<unsigned int> indices;
 	indices.resize(NUMBER_OF_INDICES);
 	pointer = 0;
 	for (int gz = 0; gz < height - 1; gz++)
 	{
-		for (int gx = 0; gx < width- 1; gx++)
+		for (int gx = 0; gx < width - 1; gx++)
 		{
 			int topLeft = (gz * width) + gx;
 			int topRight = topLeft + 1;
@@ -94,6 +66,44 @@ void Terrain::init(float* heightMap, int width, int height)
 		}
 	}
 
+	//Normal calculation via cross product of 2 vectors of one triangle
+	std::vector<float> normals;
+	normals.resize(NORMALS_SIZE);
+	for (int i = 0; i < indices.size(); i += 3)
+	{
+		int index0 = indices[i];
+		int index1 = indices[i + 1];
+		int index2 = indices[i + 2];
+		glm::vec3 pos0 = glm::vec3(positions[index0 * 3], positions[index0 * 3 + 1], positions[index0 * 3 + 2]);
+		glm::vec3 pos1 = glm::vec3(positions[index1 * 3], positions[index1 * 3 + 1], positions[index1 * 3 + 2]);
+		glm::vec3 pos2 = glm::vec3(positions[index2 * 3], positions[index2 * 3 + 1], positions[index2 * 3 + 2]);
+		glm::vec3 vector1 = pos2 - pos1;
+		glm::vec3 vector2 = pos0 - pos1;
+		glm::vec3 normal = glm::cross(vector1, vector2);
+		normal = glm::normalize(normal);
+
+		normals[index0 * 3] += normal.x;
+		normals[index0 * 3 + 1] += normal.y;
+		normals[index0 * 3 + 2] += normal.z;
+		normals[index1 * 3] += normal.x;
+		normals[index1 * 3 + 1] += normal.y;
+		normals[index1 * 3 + 2] += normal.z;
+		normals[index2 * 3] += normal.x;
+		normals[index2 * 3 + 1] += normal.y;
+		normals[index2 * 3 + 2] += normal.z;
+	}
+
+	//Normalization of normals sum between 1-6 vertices
+	pointer = 0;
+	for (int i = 0; i < normals.size(); i++)
+	{
+		glm::vec3 normal = glm::vec3(normal[pointer * 3], normal[pointer * 3 + 1], normal[pointer * 3 + 2]);
+		glm::vec3 normalizedNormal = glm::normalize(normal);
+		normals[pointer * 3] = normalizedNormal.x;
+		normals[pointer * 3 + 1] = normalizedNormal.y;
+		normals[pointer * 3 + 2] = normalizedNormal.z;
+	}
+
 	Texture sand(SAND_TEXTURE_PATH, SAND_TEXTURE_NAME);
 	Texture grass(GRASS_TEXTURE_PATH, GRASS_TEXTURE_NAME);
 	Texture rock(ROCK_TEXTURE_PATH, ROCK_TEXTURE_NAME);
@@ -103,21 +113,17 @@ void Terrain::init(float* heightMap, int width, int height)
 	rock.load();
 	snow.load();
 
-	Mesh mesh(positions, normals, textureCoordinates, indices, { sand, grass, rock, snow });
+	mesh = Mesh::Mesh(positions, normals, textureCoordinates, indices, { sand, grass, rock, snow });
 	mesh.addAttribute(0, 3, positions);
 	mesh.addAttribute(1, 3, normals);
 	mesh.addAttribute(2, 2, textureCoordinates);
-	meshes.push_back(mesh);
 }
 
 void Terrain::render(Shader shader)
 {
 	glm::mat4 model = glm::mat4(1.0f);
 	shader.setMat4("model", model);
-	for (Mesh mesh : meshes)
-	{
-		mesh.render(shader);
-	}
+	mesh.render(shader);
 }
 
 void Terrain::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos)
@@ -128,17 +134,11 @@ void Terrain::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotat
 	model = glm::translate(model, pos);
 	shader.setMat4("model", model);
 
-	for (Mesh mesh : meshes)
-	{
-		mesh.render(shader);
-	}
+	mesh.render(shader);
+
 }
 
 void Terrain::cleanup()
 {
-	for (Mesh mesh : meshes)
-	{
-		mesh.cleanup();
-	}
-	meshes.clear();
+	mesh.cleanup();
 }

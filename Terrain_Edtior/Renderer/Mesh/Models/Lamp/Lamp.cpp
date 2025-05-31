@@ -1,7 +1,7 @@
 #include "Lamp.h"
 
-Lamp::Lamp(glm::vec3 lightColor, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
-	:lightColor(lightColor), ambient(ambient), diffuse(diffuse), specular(specular), material(Material::white_plastic)
+Lamp::Lamp()
+	:lightColor(glm::vec4(1.0f))
 {
 	init();
 }
@@ -50,9 +50,8 @@ void Lamp::init()
 		6, 5, 2
 	};
 
-	Mesh mesh(positions, {}, {}, indices, {});
+	mesh = Mesh::Mesh(positions, {}, {}, indices, {});
 	mesh.addAttribute(0, 3, positions);
-	meshes.push_back(mesh);
 }
 
 void Lamp::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos)
@@ -63,17 +62,10 @@ void Lamp::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation
 	model = glm::translate(model, pos);
 	shader.setMat4("model", model);
 
-	for (Mesh mesh : meshes)
-	{
-		mesh.render(shader);
-	}
+	mesh.render(shader);
 }
 
 void Lamp::cleanup()
 {
-	for (Mesh mesh : meshes)
-	{
-		mesh.cleanup();
-	}
-	meshes.clear();
+	mesh.cleanup();
 }

@@ -4,7 +4,7 @@
 #include "../../Mesh.h"
 #include "../../../Materials/Material.h"
 
-class Cube : public Mesh
+class Cube
 {
 	const char* WALL_TEXTURE_PATH = "./Assets/Textures/wall.jpg";
 	const char* WALL_TEXTURE_NAME = "Wall";
@@ -14,7 +14,7 @@ class Cube : public Mesh
 
 public:
 	Material material;
-	std::vector<Mesh> meshes;
+	Mesh mesh;
 	
 	Cube(Material material);
 	

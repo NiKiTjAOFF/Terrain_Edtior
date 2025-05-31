@@ -1,4 +1,3 @@
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -115,7 +114,7 @@ int main()
 	PerlinNoise noise;
 	Terrain terrain;
 	Cube cube(Material::emerald);
-	Lamp lamp(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(1.0f));
+	Lamp lamp;
 	lamp.pos = glm::vec3(10.0f);
 
 	Texture noiseTexture;
@@ -162,8 +161,14 @@ int main()
 		//Set the flush color and flush back buffer and depth buffer
 		screen.update();
 
-		//Updates frames of ImGUI UI
+		//Update light source position to move it in an ellipsoid direction
+		if (g_isTerrainGenerated)
+		{
+			lamp.pos.x = terrain.size * noise.width / 2 * (1 + cos(glfwGetTime()));
+			lamp.pos.z = terrain.size * noise.height / 2 * (1 + sin(glfwGetTime()));
+		}
 
+		//Updates frames of ImGUI UI
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -177,17 +182,15 @@ int main()
 		lampShader.activate();
 		lampShader.setMat4("view", view);
 		lampShader.setMat4("projection", projection);
-		lampShader.set3Float("lightColor", lamp.lightColor);
+		lampShader.set4Float("lightColor", lamp.lightColor);
 		lamp.render(lampShader, glm::vec3(0.25f), 0.0f, glm::vec3(1.0f), lamp.pos);
 
 		cubeShader.activate();
 		cubeShader.setMat4("view", view);
 		cubeShader.setMat4("projection", projection);
 		cubeShader.set3Float("light.position", lamp.pos);
+		cubeShader.set4Float("light.color", lamp.lightColor);
 		cubeShader.set3Float("viewPos", g_camera.cameraPos);
-		cubeShader.set3Float("light.ambient", lamp.ambient);
-		cubeShader.set3Float("light.diffuse", lamp.diffuse);
-		cubeShader.set3Float("light.specular", lamp.specular);
 
 		//TODO add object placing using mousePicker
 		//cube.render(cubeShader, glm::vec3(1.0f), 0.0f, glm::vec3(1.0f), MousePicker::update(projection, view));
@@ -221,9 +224,11 @@ int main()
 			terrainShader.setFloat("iceHeight", terrain.iceHeight);
 			terrainShader.set4Float("iceColor", terrain.iceColor.x, terrain.iceColor.y, terrain.iceColor.z, terrain.iceColor.w);
 			//Misc
+			terrainShader.set3Float("light.position", lamp.pos);
+			terrainShader.set4Float("light.color", lamp.lightColor);
 			terrainShader.setInt("colorType", terrain.colorType);
 			terrainShader.setInt("factorCalculationMethod", terrain.calculationMethod);
-			terrainShader.setFloat("colorBlending", terrain.colorBlending);
+			terrainShader.setInt("isLightNeeded", terrain.isLightNeeded);
 			
 			terrain.render(terrainShader);
 		}
@@ -234,7 +239,7 @@ int main()
 		}
 		else if (g_isTerrainGenerationNeeded)
 		{
-			if (!terrain.meshes.empty())
+			if (!terrain.mesh.positions.empty())
 			{
 				terrain.cleanup();
 			}
@@ -372,11 +377,6 @@ int main()
 					ImGui::NewLine();
 
 					//Terrain Misc
-					if (terrain.colorType == ColorRendering::TEXTURE_COLOR)
-					{
-						ImGui::SliderFloat("Texture and Color Blending", &terrain.colorBlending, 0.0f, 1.0f);
-					}
-
 					const char* calculationMethod[] = { "Mix", "Smoothstep" };
 					ImGui::Combo("Calculation Method", &terrain.calculationMethod, calculationMethod, IM_ARRAYSIZE(calculationMethod));
 
@@ -388,6 +388,8 @@ int main()
 						terrain.iceHeight = 0.0f;
 					}
 
+					ImGui::Checkbox("Enable Lighting", &terrain.isLightNeeded);
+
 					ImGui::EndTabItem();
 				}
 
@@ -395,6 +397,8 @@ int main()
 				if (ImGui::BeginTabItem("Global Settings"))
 				{
 					ImGui::ColorEdit4("Clear color", (float*)&screen.clearColor);
+					ImGui::ColorEdit4("Light color", (float*)&lamp.lightColor);
+					ImGui::DragFloat("Light height", &lamp.pos.y);
 					ImGui::EndTabItem();
 				}
 

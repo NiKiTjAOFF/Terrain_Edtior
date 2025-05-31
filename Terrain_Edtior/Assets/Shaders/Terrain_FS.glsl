@@ -1,8 +1,10 @@
 #version 330 core
 out vec4 FragColor;
 
+in vec3 normal;
 in vec2 texCoord;
 in float height;
+in vec3 fragPos;
 
 #define TEXTURE 0
 #define COLOR 1
@@ -10,6 +12,11 @@ in float height;
 
 #define MIX 0
 #define SMOOTHSTEP 1
+
+struct Light {
+	vec3 position;
+	vec4 color;
+};
 
 //Sand
 uniform sampler2D sand;
@@ -28,10 +35,10 @@ uniform sampler2D ice;
 uniform vec4 iceColor;
 uniform float iceHeight;
 
-
+uniform Light light;
 uniform int colorType;
 uniform int factorCalculationMethod;
-uniform float colorBlending;
+uniform bool isLightNeeded;
 
 vec4 mixTextures(sampler2D tex1, sampler2D tex2, float tex1Height, float tex2Height)
 {
@@ -86,7 +93,7 @@ void main ()
 		}
 		else if (colorType == TEXTURE_COLOR)
 		{
-			finalColor = mix(texture(sand, texCoord), sandColor, colorBlending);
+			finalColor = mix(texture(sand, texCoord), sandColor, 0.5f);
 		}
 	}
 	//Sand - Grass
@@ -104,7 +111,7 @@ void main ()
 		{
 			vec4 textureColor = mixTextures(sand, grass, sandHeight, grassHeight);
 			vec4 baseColor = mixColors(sandColor, grassColor, sandHeight, grassHeight);
-			finalColor = mix(textureColor, baseColor, colorBlending);
+			finalColor = mix(textureColor, baseColor, 0.5f);
 		}
 	}
 	//Grass - Rock
@@ -122,7 +129,7 @@ void main ()
 		{
 			vec4 textureColor = mixTextures(grass, rock, grassHeight, rockHeight);
 			vec4 baseColor = mixColors(grassColor, rockColor, grassHeight, rockHeight);
-			finalColor = mix(textureColor, baseColor, colorBlending);
+			finalColor = mix(textureColor, baseColor, 0.5f);
 		}
 	}
 	//Rock - Ice
@@ -140,7 +147,7 @@ void main ()
 		{
 			vec4 textureColor = mixTextures(rock, ice, rockHeight, iceHeight);
 			vec4 baseColor = mixColors(rockColor, iceColor, rockHeight, iceHeight);
-			finalColor = mix(textureColor, baseColor, colorBlending);
+			finalColor = mix(textureColor, baseColor, 0.5f);
 		}
 	}
 	//Ice
@@ -156,8 +163,26 @@ void main ()
 		}
 		else if (colorType == TEXTURE_COLOR)
 		{
-			finalColor = mix(texture(ice, texCoord), iceColor, colorBlending);
+			finalColor = mix(texture(ice, texCoord), iceColor, 0.5f);
 		}
 	}
-	FragColor = finalColor;
+
+	//Lighting
+	if(isLightNeeded)
+	{
+		//Ambient
+		vec3 ambient = light.color.rgb * light.color.a;
+
+		//Diffuse
+		vec3 norm = normalize(normal);
+		vec3 lightDir = normalize(light.position - fragPos);
+		float diff = max(dot(norm, lightDir), 0.0f);
+		vec3 diffuse = diff * light.color.rgb;
+		FragColor = finalColor * vec4(ambient + diffuse, 1.0f);
+	}
+	else
+	{
+		FragColor = finalColor;
+	}
+	
 }
