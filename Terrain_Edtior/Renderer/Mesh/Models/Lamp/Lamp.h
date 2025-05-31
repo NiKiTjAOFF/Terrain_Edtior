@@ -7,16 +7,11 @@
 class Lamp
 {
 public:
-	std::vector<Mesh> meshes;
-	glm::vec3 lightColor;
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
-	Material material;
-
+	Mesh mesh;
 	glm::vec3 pos;
+	glm::vec4 lightColor;
 
-	Lamp(glm::vec3 lightColor, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
+	Lamp();
 
 	void init();
 

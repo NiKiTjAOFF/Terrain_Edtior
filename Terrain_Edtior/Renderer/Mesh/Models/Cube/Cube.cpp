@@ -91,11 +91,10 @@ void Cube::init()
 	Texture tex1(SMILEY_FACE_TEXTURE_PATH, SMILEY_FACE_TEXTURE_NAME);
 	tex1.load();
 
-	Mesh mesh(positions, normals, textureCoordinates, indices, { tex0, tex1 });
+	mesh = Mesh::Mesh(positions, normals, textureCoordinates, indices, { tex0, tex1 });
 	mesh.addAttribute(0, 3, positions);
 	mesh.addAttribute(1, 3, normals);
 	mesh.addAttribute(2, 2, textureCoordinates);
-	meshes.push_back(mesh);
 }
 
 void Cube::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos)
@@ -111,17 +110,10 @@ void Cube::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation
 	shader.set3Float("material.specular", material.specular);
 	shader.setFloat("material.shininess", material.shininess);
 
-	for (Mesh mesh : meshes)
-	{
-		mesh.render(shader);
-	}
+	mesh.render(shader);
 }
 
 void Cube::cleanup()
 {
-	for (Mesh mesh : meshes)
-	{
-		mesh.cleanup();
-	}
-	meshes.clear();
+	mesh.cleanup();
 }

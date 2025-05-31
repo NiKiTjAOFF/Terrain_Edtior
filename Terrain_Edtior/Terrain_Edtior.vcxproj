@@ -179,10 +179,10 @@
   <ItemGroup>
     <None Include="Assets\Shaders\Cube_FS.glsl" />
     <None Include="Assets\Shaders\Cube_VS.glsl" />
+    <None Include="Assets\Shaders\Lamp_FS.glsl" />
+    <None Include="Assets\Shaders\Lamp_VS.glsl" />
     <None Include="Assets\Shaders\Terrain_FS.glsl" />
     <None Include="Assets\Shaders\Terrain_VS.glsl" />
-    <None Include="Lamp_FS.glsl" />
-    <None Include="Lamp_VS.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h" />

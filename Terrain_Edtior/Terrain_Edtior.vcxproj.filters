@@ -161,10 +161,10 @@
     <None Include="Assets\Shaders\Cube_VS.glsl">
       <Filter>Файлы ресурсов\Shaders\VertexShaders</Filter>
     </None>
-    <None Include="Lamp_VS.glsl">
+    <None Include="Assets\Shaders\Lamp_VS.glsl">
       <Filter>Файлы ресурсов\Shaders\VertexShaders</Filter>
     </None>
-    <None Include="Lamp_FS.glsl">
+    <None Include="Assets\Shaders\Lamp_FS.glsl">
       <Filter>Файлы ресурсов\Shaders\FragmentShaders</Filter>
     </None>
   </ItemGroup>

@@ -1,11 +1,12 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormals;
+layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoord;
 
-out vec3 normals;
+out vec3 normal;
 out vec2 texCoord;
 out float height;
+out vec3 fragPos;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -17,9 +18,9 @@ uniform float size;
 
 void main()
 {
-	gl_Position = projection * view * model * vec4(aPos.x * size, aPos.y * maxHeight, aPos.z * size, 1.0);
+	fragPos = vec3(model * vec4(aPos.x * size, aPos.y * maxHeight, aPos.z * size, 1.0));
+	gl_Position = projection * view * vec4(fragPos, 1.0f);
 	texCoord = aTexCoord * textureRepeat;
-	normals = aNormals;
-	height = (aPos.y + 1.0f) / 2.0f;
-	//height = aPos.y;
+	normal = aNormal;
+	height = (aPos.y + 1.0f) / 2.0f;//[0, 1]
 }
