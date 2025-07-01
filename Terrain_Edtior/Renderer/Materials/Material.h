@@ -3,7 +3,8 @@
 
 #include <glm/glm.hpp>
 
-struct Material {
+struct Material
+{
 	//lighting values
 	glm::vec3 ambient;
 	glm::vec3 diffuse;

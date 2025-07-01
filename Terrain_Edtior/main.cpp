@@ -1,6 +1,6 @@
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -115,7 +115,6 @@ int main()
 	Terrain terrain;
 	Cube cube(Material::emerald);
 	Lamp lamp;
-	lamp.pos = glm::vec3(10.0f);
 
 	Texture noiseTexture;
 	noiseTexture.generate();
@@ -267,30 +266,31 @@ int main()
 				//Global Settings Tab
 				if (ImGui::BeginTabItem("Controls"))
 				{
-					ImGui::Text("Controls:                    Keyboard/Mouse     | Joystick");
-					//Keyboard Controls						  
-					ImGui::NewLine();						  
-					ImGui::Text("Keyboard controls");	      
-					ImGui::Text("Exit Program:                ESC                | Circle  ");
-					ImGui::Text("Move Forward:                W                  |         ");
-					ImGui::Text("Move Backwards:              S                  |         ");
-					ImGui::Text("Move Left:                   A                  |         ");
-					ImGui::Text("Move Right:                  D                  |         ");
-					ImGui::Text("Move Up:                     Space              |         ");
-					ImGui::Text("Move Down:                   Left Shift         |         ");
-					ImGui::Text("Close/Open ImGui Window:     Q                  |         ");
-					ImGui::Text("Hide/Show Mouse Cursor:      H                  |         ");
-					ImGui::Text("Enable/Disable wired mode:   M                  |         ");
-					ImGui::Text("Enable/Disable points mode:  O                  |         ");
+					ImGui::Text("Controls:                        Keyboard/Mouse     | PS               ");
+					//Keyboard Controls						      
+					ImGui::NewLine();						      
+					ImGui::Text("Keyboard controls");	          
+					ImGui::Text("Exit Program:                    ESC                | Start            ");
+					ImGui::Text("Move Forward:                    W                  | Left Stick Up    ");
+					ImGui::Text("Move Backwards:                  S                  | Left Stick Down  ");
+					ImGui::Text("Move Left:                       A                  | Left Stick Left  ");
+					ImGui::Text("Move Right:                      D                  | Left Stick Right ");
+					ImGui::Text("Move Up:                         Space              | X                ");
+					ImGui::Text("Move Down:                       Left Shift         | Circle           ");
+					ImGui::Text("Close/Open ImGui Window:         Q                  | Select           ");
+					ImGui::Text("Hide/Show Mouse Cursor:          H                  | Triangle         ");
+					ImGui::Text("Enable/Disable wired mode:       M                  | L1               ");
+					ImGui::Text("Enable/Disable points mode:      O                  | L2               ");
+					ImGui::Text("Enable/Disable fullscreen mode:  F                  | R1               ");
 					//Mouse Controls						  
 					ImGui::NewLine();						  
 					ImGui::Text("Mouse Controls");			  
-					ImGui::Text("Look Up:                     Mouse Up           |         ");
-					ImGui::Text("Look Down:                   Mouse Down         |         ");
-					ImGui::Text("Look Left:                   Mouse Left         |         ");
-					ImGui::Text("Look Right:                  Mouse Right        |         ");
-					ImGui::Text("Zoom in:                     Mouse Wheel Up     |         ");
-					ImGui::Text("Zoom out:                    Mouse Wheel Down   |         ");
+					ImGui::Text("Look Up:                         Mouse Up           | Right Stick Up   ");
+					ImGui::Text("Look Down:                       Mouse Down         | Right Stick Down ");
+					ImGui::Text("Look Left:                       Mouse Left         | Right Stick Left ");
+					ImGui::Text("Look Right:                      Mouse Right        | Right Stick Right");
+					ImGui::Text("Zoom in:                         Mouse Wheel Up     | Dpad Up          ");
+					ImGui::Text("Zoom out:                        Mouse Wheel Down   | Dpad Down        ");
 					ImGui::EndTabItem();
 				}
 
@@ -398,7 +398,7 @@ int main()
 				{
 					ImGui::ColorEdit4("Clear color", (float*)&screen.clearColor);
 					ImGui::ColorEdit4("Light color", (float*)&lamp.lightColor);
-					ImGui::DragFloat("Light height", &lamp.pos.y);
+					ImGui::DragFloat("Light height", &lamp.pos.y, 0.1f);
 					ImGui::EndTabItem();
 				}
 
@@ -451,7 +451,7 @@ void processInput(double dt)
 	}
 
 	//FullScreen
-	if (Keyboard::keyWentDown(GLFW_KEY_F))
+	if (Keyboard::keyWentDown(GLFW_KEY_F) || mainJ.buttonState(GLFW_JOYSTICK_SHOULDER_RIGHT))
 	{
 		if (glfwGetWindowMonitor(screen.getWindow()) == NULL) {
 			// Switch to fullscreen mode
@@ -466,7 +466,7 @@ void processInput(double dt)
 	}
 
 	//Enable/Disable cursor
-	if (Keyboard::keyWentDown(GLFW_KEY_H))
+	if (Keyboard::keyWentDown(GLFW_KEY_H) || mainJ.buttonState(GLFW_JOYSTICK_BTN_UP))
 	{
 		if (glfwGetInputMode(screen.getWindow(), GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 		{
@@ -480,7 +480,7 @@ void processInput(double dt)
 	}
 
 	//Switch between wired and normal mode
-	if (Keyboard::keyWentDown(GLFW_KEY_M)) {
+	if (Keyboard::keyWentDown(GLFW_KEY_M) || mainJ.buttonState(GLFW_JOYSTICK_SHOULDER_LEFT)) {
 		if (!g_isWiredModeEnabled) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
@@ -493,7 +493,7 @@ void processInput(double dt)
 	}
 
 	//Switch between points and normal mode
-	if (Keyboard::keyWentDown(GLFW_KEY_P)) {
+	if (Keyboard::keyWentDown(GLFW_KEY_P) || mainJ.buttonState(GLFW_JOYSTICK_TRIGGER_LEFT)) {
 		if (!g_isPointModeEnabled) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		}
@@ -506,7 +506,7 @@ void processInput(double dt)
 	}
 
 	//Enable ImGui rendering
-	if (Keyboard::keyWentDown(GLFW_KEY_Q))
+	if (Keyboard::keyWentDown(GLFW_KEY_Q) || mainJ.buttonState(GLFW_JOYSTICK_SELECT))
 	{
 		g_isImGuiRenderNeeded = !g_isImGuiRenderNeeded;
 	}
@@ -518,27 +518,27 @@ void processInput(double dt)
 	}
 
 	//Move camera
-	if (Keyboard::key(GLFW_KEY_W))
+	if (Keyboard::key(GLFW_KEY_W) || mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y) > 0.4)
 	{
 		g_camera.updateCameraPos(CameraDirection::FORWARD, dt);
 	}
-	if (Keyboard::key(GLFW_KEY_S))
+	if (Keyboard::key(GLFW_KEY_S) || mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_Y) < -0.4)
 	{
 		g_camera.updateCameraPos(CameraDirection::BACKWARD, dt);
 	}
-	if (Keyboard::key(GLFW_KEY_D))
+	if (Keyboard::key(GLFW_KEY_D) || mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X) > 0.4)
 	{
 		g_camera.updateCameraPos(CameraDirection::RIGHT, dt);
 	}
-	if (Keyboard::key(GLFW_KEY_A))
+	if (Keyboard::key(GLFW_KEY_A) || mainJ.axesState(GLFW_JOYSTICK_AXES_LEFT_STICK_X) < -0.4)
 	{
 		g_camera.updateCameraPos(CameraDirection::LEFT, dt);
 	}
-	if (Keyboard::key(GLFW_KEY_SPACE))
+	if (Keyboard::key(GLFW_KEY_SPACE) || mainJ.buttonState(GLFW_JOYSTICK_BTN_DOWN))
 	{
 		g_camera.updateCameraPos(CameraDirection::UP, dt);
 	}
-	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT))
+	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT) || mainJ.buttonState(GLFW_JOYSTICK_BTN_RIGHT))
 	{
 		g_camera.updateCameraPos(CameraDirection::DOWN, dt);
 	}
@@ -549,10 +549,15 @@ void processInput(double dt)
 	}
 
 	//Change Yaw and Pitch of a camera
-	double dx = Mouse::getDX(), dy = Mouse::getDY();
-	if (dx != 0 || dy != 0)
+	double dxM = Mouse::getDX(), dyM = Mouse::getDY();
+	double dxJ = mainJ.axesState(GLFW_JOYSTICK_AXES_RIGHT_STICK_X), dyJ = mainJ.axesState(GLFW_JOYSTICK_AXES_RIGHT_STICK_Y);
+	if (dxM != 0 || dyM != 0)
 	{
-		g_camera.updateCameraDirection(dx, dy);
+		g_camera.updateCameraDirection(dxM, dyM);
+	}
+	else if (dxJ != 0 || dyJ != 0)
+	{
+		g_camera.updateCameraDirection(dxJ, dyJ);
 	}
 
 	//Change FOV of a camera
@@ -560,5 +565,13 @@ void processInput(double dt)
 	if (scrollDY != 0)
 	{
 		g_camera.updateCameraZoom(scrollDY);
+	}
+	else if (mainJ.buttonState(GLFW_JOYSTICK_DPAD_UP))
+	{
+		g_camera.updateCameraZoom(0.2f);
+	}
+	else if (mainJ.buttonState(GLFW_JOYSTICK_DPAD_DOWN))
+	{
+		g_camera.updateCameraZoom(-0.2f);
 	}
 }

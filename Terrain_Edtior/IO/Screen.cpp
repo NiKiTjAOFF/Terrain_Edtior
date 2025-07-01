@@ -22,7 +22,7 @@ GLFWwindow* Screen::getWindow()
 }
 
 Screen::Screen()
-	: window(nullptr), clearColor(glm::vec4(1.0f, 0.898f, 0.706f, 1.0f))
+	: window(nullptr), clearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))
 {}
 
 bool Screen::init()
