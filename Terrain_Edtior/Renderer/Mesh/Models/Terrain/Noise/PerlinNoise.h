@@ -11,7 +11,8 @@
 #include <random>
 #include <limits>
 
-class PerlinNoise {
+class PerlinNoise
+{
 
 public:
     int width;

@@ -13,11 +13,6 @@ Terrain::Terrain()
 	isLightNeeded(true), colorType(1), calculationMethod(1)
 {}
 
-bool Terrain::checkBounds(int index, int size)
-{
-	return ((index >= 0) && (index < size)) ? true : false;
-}
-
 void Terrain::init(float* heightMap, int width, int height)
 {
 	const int NUMBER_OF_VERTICES = width * height;
@@ -129,9 +124,9 @@ void Terrain::render(Shader shader)
 void Terrain::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos)
 {
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, size);
-	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
 	model = glm::translate(model, pos);
+	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
+	model = glm::scale(model, size);
 	shader.setMat4("model", model);
 
 	mesh.render(shader);

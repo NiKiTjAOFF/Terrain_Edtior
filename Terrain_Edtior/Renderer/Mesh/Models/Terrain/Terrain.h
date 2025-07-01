@@ -24,7 +24,6 @@ class Terrain
 	const char* ICE_TEXTURE_PATH = "./Assets/Textures/ice.jpg";
 	const char* ICE_TEXTURE_NAME = "ice";
 
-	bool checkBounds(int index, int size);
 public:
 	float size;
 	float textureRepeat;

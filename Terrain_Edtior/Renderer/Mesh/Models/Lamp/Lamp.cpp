@@ -1,7 +1,7 @@
 #include "Lamp.h"
 
 Lamp::Lamp()
-	:lightColor(glm::vec4(1.0f))
+	:lightColor(glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)), pos(glm::vec3(10.0f))
 {
 	init();
 }
@@ -57,9 +57,9 @@ void Lamp::init()
 void Lamp::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos)
 {
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, size);
-	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
 	model = glm::translate(model, pos);
+	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
+	model = glm::scale(model, size);
 	shader.setMat4("model", model);
 
 	mesh.render(shader);

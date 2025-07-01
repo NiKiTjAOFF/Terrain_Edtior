@@ -6,10 +6,12 @@ in vec2 texCoord;
 in float height;
 in vec3 fragPos;
 
+//Color Type
 #define TEXTURE 0
 #define COLOR 1
 #define TEXTURE_COLOR 2
 
+//Factor Calculation Method
 #define MIX 0
 #define SMOOTHSTEP 1
 
@@ -171,11 +173,11 @@ void main ()
 	if(isLightNeeded)
 	{
 		//Ambient
-		vec3 ambient = light.color.rgb * light.color.a;
+		vec3 ambient = light.color.rgb * light.color.a / 10.0f;
 
 		//Diffuse
 		vec3 norm = normalize(normal);
-		vec3 lightDir = normalize(light.position - fragPos);
+		vec3 lightDir = normalize(light.position - fragPos);;
 		float diff = max(dot(norm, lightDir), 0.0f);
 		vec3 diffuse = diff * light.color.rgb;
 		FragColor = finalColor * vec4(ambient + diffuse, 1.0f);

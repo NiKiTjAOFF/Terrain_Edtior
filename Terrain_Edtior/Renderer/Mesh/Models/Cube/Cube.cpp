@@ -100,9 +100,9 @@ void Cube::init()
 void Cube::render(Shader shader, glm::vec3 size, float theta, glm::vec3 rotation, glm::vec3 pos)
 {
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, size);
-	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
 	model = glm::translate(model, pos);
+	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(theta), glm::vec3(rotation));
+	model = glm::scale(model, size);
 	shader.setMat4("model", model);
 	shader.setMat3("normalMatrix", glm::transpose(glm::inverse(model)));
 	shader.set3Float("material.ambient", material.ambient);
